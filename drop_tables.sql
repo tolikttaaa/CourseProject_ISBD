@@ -1,4 +1,4 @@
-DROP TABLE if exists people,
+DROP TABLE IF EXISTS people,
                      publication,
                      email,
                      phone,

@@ -133,8 +133,11 @@ CREATE TABLE project_case
 
 CREATE TABLE mentor_team
 (
-    mentor_id integer REFERENCES mentor (person_id) ON DELETE CASCADE,
-    team_id   integer REFERENCES team (team_id) ON DELETE CASCADE
+    mentor_id integer,
+    champion_ship_id integer,
+    FOREIGN KEY (mentor_id, champion_ship_id) REFERENCES mentor (person_id, championship_id) ON DELETE CASCADE,
+    team_id   integer REFERENCES team (team_id) ON DELETE CASCADE,
+    PRIMARY KEY (mentor_id, team_id)
 );
 
 CREATE TABLE people_publication
@@ -161,11 +164,6 @@ CREATE OR REPLACE FUNCTION age(person integer) RETURNS integer
 
     $$ LANGUAGE plpgSQL;
 
-CREATE FUNCTION addParticipant(person integer, championship integer) RETURNS VOID
-    AS $$
-        INSERT INTO participant (person_id, championship_id) VALUES (person, championship);
-    $$ LANGUAGE plpgSQL;
-
 CREATE FUNCTION addParticipant(
         first_name character[20],
         last_name character[20],
@@ -183,7 +181,8 @@ CREATE FUNCTION addParticipant(
             SELECT max(person_id) INTO person
             FROM people;
 
-            PERFORM addParticipant(person, championship_id);
+            INSERT INTO participant (person_id, championship_id) VALUES
+                (person, addParticipant.championship_id);
 
             RETURN person;
         END;
