@@ -6,6 +6,26 @@ CREATE TABLE people
     birth_date date          NOT NULL CHECK (birth_date <= NOW())
 );
 
+-- function that return age of the person by his ID
+CREATE OR REPLACE FUNCTION age(person integer) RETURNS integer
+    AS $$
+        DECLARE
+            age integer;
+
+        BEGIN
+            SELECT date_part('year', age(birth_date)) INTO age
+            FROM people
+            WHERE person_id = person;
+
+            RETURN age;
+        END;
+
+    $$ LANGUAGE plpgSQL;
+
+CREATE VIEW people_view AS
+    SELECT *, age(person_id) AS age
+    FROM people;
+
 CREATE TABLE publication
 (
     publication_id serial PRIMARY KEY,
@@ -146,23 +166,6 @@ CREATE TABLE people_publication
     publication_id integer REFERENCES publication (publication_id) ON DELETE CASCADE
 );
 
--- Functions
-
--- function that return age of the person by his ID
-CREATE OR REPLACE FUNCTION age(person integer) RETURNS integer
-    AS $$
-        DECLARE
-            age integer;
-
-        BEGIN
-            SELECT date_part('year', age(birth_date)) INTO age
-            FROM people
-            WHERE person_id = person;
-
-            RETURN age;
-        END;
-
-    $$ LANGUAGE plpgSQL;
 
 CREATE FUNCTION addParticipant(
         first_name character[20],
@@ -188,5 +191,5 @@ CREATE FUNCTION addParticipant(
         END;
     $$ LANGUAGE plpgSQL;
 
--- Trigers
+-- Triggers
 

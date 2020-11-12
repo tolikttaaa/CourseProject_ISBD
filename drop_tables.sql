@@ -17,4 +17,7 @@ DROP TABLE IF EXISTS people,
                      championship_platform,
                      mentor_team,
                      project_case,
-                     people_publication;
+                     people_publication CASCADE;
+
+DROP FUNCTION IF EXISTS age(person integer);
+DROP FUNCTION IF EXISTS addparticipant(first_name character[], last_name character[], birth_date date, championship_id integer);
