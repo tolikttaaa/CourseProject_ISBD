@@ -22,4 +22,6 @@ DROP TABLE IF EXISTS people,
 DROP FUNCTION IF EXISTS age(integer) CASCADE;
 DROP FUNCTION IF EXISTS insert_participant(character[], character[], date, integer) CASCADE;
 DROP FUNCTION IF EXISTS insert_judge(character[], character[], date, integer, text) CASCADE;
-DROP FUNCTION IF EXISTS insert_team(text, integer[], integer) CASCADE;
+DROP FUNCTION IF EXISTS insert_team(text, integer[], integer, integer) CASCADE;
+DROP FUNCTION IF EXISTS insert_team(text, integer[], integer[], integer, integer) CASCADE;
+DROP FUNCTION IF EXISTS add_mentor_to_team(integer, integer, integer) CASCADE;
