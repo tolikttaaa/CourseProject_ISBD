@@ -19,5 +19,7 @@ DROP TABLE IF EXISTS people,
                      project_case,
                      people_publication CASCADE;
 
-DROP FUNCTION IF EXISTS age(person integer);
-DROP FUNCTION IF EXISTS addparticipant(first_name character[], last_name character[], birth_date date, championship_id integer);
+DROP FUNCTION IF EXISTS age(integer) CASCADE;
+DROP FUNCTION IF EXISTS insert_participant(character[], character[], date, integer) CASCADE;
+DROP FUNCTION IF EXISTS insert_judge(character[], character[], date, integer, text) CASCADE;
+DROP FUNCTION IF EXISTS insert_team(text, integer[], integer) CASCADE;

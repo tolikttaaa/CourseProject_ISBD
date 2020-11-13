@@ -45,13 +45,6 @@ CREATE TABLE phone
     person_id    integer REFERENCES people (person_id) ON DELETE CASCADE
 );
 
-CREATE TABLE team
-(
-    team_id   serial PRIMARY KEY,
-    name      text,
-    leader_id integer
-);
-
 CREATE TABLE championship
 (
     championship_id serial PRIMARY KEY,
@@ -59,6 +52,14 @@ CREATE TABLE championship
     description     text,
     begin_date      date   NOT NULL,
     end_date        date
+);
+
+CREATE TABLE team
+(
+    team_id         serial   PRIMARY KEY,
+    name            text,
+    leader_id       integer,
+    championship_id integer  REFERENCES championship (championship_id) ON DELETE CASCADE
 );
 
 CREATE TABLE platform
@@ -78,7 +79,7 @@ CREATE TABLE participant
 (
     person_id       integer REFERENCES people (person_id) ON DELETE CASCADE,
     championship_id integer REFERENCES championship (championship_id) ON DELETE CASCADE,
-    team_id         integer,  -- can be null before team was created
+    team_id         integer REFERENCES team (team_id) ON DELETE SET NULL,
     PRIMARY KEY (person_id, championship_id)
 );
 
@@ -127,7 +128,7 @@ CREATE TABLE judge
     person_id       integer REFERENCES people (person_id) ON DELETE CASCADE,
     championship_id integer REFERENCES championship (championship_id) ON DELETE CASCADE,
     work            text,
-    judge_team_id   integer REFERENCES judge_team (judge_team_id) ON DELETE CASCADE,
+    judge_team_id   integer REFERENCES judge_team (judge_team_id) ON DELETE SET NULL ,
     PRIMARY KEY (person_id, championship_id)
 );
 
@@ -154,8 +155,8 @@ CREATE TABLE project_case
 CREATE TABLE mentor_team
 (
     mentor_id integer,
-    champion_ship_id integer,
-    FOREIGN KEY (mentor_id, champion_ship_id) REFERENCES mentor (person_id, championship_id) ON DELETE CASCADE,
+    championship_id integer,
+    FOREIGN KEY (mentor_id, championship_id) REFERENCES mentor (person_id, championship_id) ON DELETE CASCADE,
     team_id   integer REFERENCES team (team_id) ON DELETE CASCADE,
     PRIMARY KEY (mentor_id, team_id)
 );
@@ -167,7 +168,7 @@ CREATE TABLE people_publication
 );
 
 
-CREATE FUNCTION addParticipant(
+CREATE FUNCTION insert_participant(
         first_name character[20],
         last_name character[20],
         birth_date date,
@@ -179,17 +180,115 @@ CREATE FUNCTION addParticipant(
 
         BEGIN
             INSERT INTO people (first_name, last_name, birth_date) VALUES
-                (addParticipant.first_name, addParticipant.last_name, addParticipant.birth_date);
+                (insert_participant.first_name, insert_participant.last_name, insert_participant.birth_date);
 
             SELECT max(person_id) INTO person
             FROM people;
 
             INSERT INTO participant (person_id, championship_id) VALUES
-                (person, addParticipant.championship_id);
+                (person, insert_participant.championship_id);
 
             RETURN person;
         END;
     $$ LANGUAGE plpgSQL;
 
+CREATE FUNCTION insert_judge(
+    first_name character[20],
+    last_name character[20],
+    birth_date date,
+    championship_id integer,
+    work text
+) RETURNS integer
+    AS $$
+        DECLARE
+            person integer;
+
+        BEGIN
+            INSERT INTO people (first_name, last_name, birth_date) VALUES
+                (insert_judge.first_name, insert_judge.last_name, insert_judge.birth_date);
+
+            SELECT max(person_id) INTO person
+            FROM people;
+
+            INSERT INTO judge (person_id, championship_id, work) VALUES
+                (person, insert_judge.championship_id, insert_judge.work);
+
+            RETURN person;
+        END;
+    $$ LANGUAGE plpgSQL;
+
+CREATE FUNCTION insert_team(
+    name text,
+    participants integer[],
+    leader_id integer,
+    championship_id integer
+) RETURNS integer
+    AS $$
+        DECLARE
+            person integer;
+            team_number integer;
+        BEGIN
+            IF (SELECT insert_team.leader_id != ALL(participants)) THEN
+                RAISE EXCEPTION 'Leader_id not in participants array';
+            END IF;
+
+            INSERT INTO team (name, championship_id) VALUES (insert_team.name, insert_team.championship_id);
+            SELECT max(team_id) INTO team_number FROM team;
+
+            FOREACH person IN ARRAY participants
+            LOOP
+                UPDATE participant
+                SET team_id = team_number
+                WHERE person_id = person AND championship_id = insert_team.championship_id;
+            END LOOP;
+
+            UPDATE team
+            SET leader_id = insert_team.leader_id
+            WHERE team_id = team_number;
+
+            RETURN team_number;
+        END;
+    $$ LANGUAGE plpgSQL;
+
+CREATE FUNCTION add_mentor_to_team(
+    mentor_id integer,
+    championship_id integer,
+    team_id integer
+) RETURNS VOID
+    AS $$
+        BEGIN
+            INSERT INTO mentor_team (mentor_id, championship_id, team_id) VALUES
+                (add_mentor_to_team.mentor_id,
+                 add_mentor_to_team.championship_id,
+                 add_mentor_to_team.team_id);
+        END;
+    $$ LANGUAGE plpgSQL;
+
+CREATE FUNCTION insert_team(
+    name text,
+    participants integer[],
+    mentors integer[],
+    leader_id integer,
+    championship_id integer
+) RETURNS integer
+    AS $$
+        DECLARE
+            cur_mentor integer;
+            team_number integer;
+
+        BEGIN
+            PERFORM insert_team(name, participants, leader_id, championship_id) INTO team_number;
+
+            INSERT INTO team (name) VALUES (insert_team.name);
+            SELECT max(team_id) INTO team_number FROM team;
+
+            FOREACH cur_mentor IN ARRAY mentors
+            LOOP
+                PERFORM add_mentor_to_team(cur_mentor, championship_id, team_number);
+            END LOOP;
+
+            RETURN team_number;
+        END;
+    $$ LANGUAGE plpgSQL;
 -- Triggers
 
