@@ -309,7 +309,24 @@ CREATE OR REPLACE FUNCTION start_championship(championship_id integer) RETURNS V
 AS
 $$
 BEGIN
-    -- TODO: check all entities
+
+    IF ((EXISTS(SELECT judge_team_id
+                FROM judge_team
+                         JOIN judge on judge_team.judge_team_id = judge.judge_team_id
+                WHERE judge.championship_id = start_championship.championship_id) AND
+         EXISTS(SELECT leader_id
+                FROM team
+                         JOIN participant on team.team_id = participant.team_id
+                WHERE participant.championship_id = start_championship.championship_id) AND
+         EXISTS(SELECT platform_id
+                FROM championship_platform
+                WHERE championship_platform.championship_id = start_championship.championship_id)) = true)
+    THEN
+        UPDATE championship
+        SET begin_date = now()
+        WHERE championship_id = start_championship.championship_id;
+        -- TODO: check all entities
+    END IF;
 END;
 $$ LANGUAGE plpgSQL;
 
