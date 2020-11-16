@@ -310,17 +310,17 @@ AS
 $$
 BEGIN
 
-    IF ((EXISTS(SELECT judge_team_id
-                FROM judge_team
-                         JOIN judge on judge_team.judge_team_id = judge.judge_team_id
-                WHERE judge.championship_id = start_championship.championship_id) AND
-         EXISTS(SELECT leader_id
-                FROM team
-                         JOIN participant on team.team_id = participant.team_id
-                WHERE participant.championship_id = start_championship.championship_id) AND
-         EXISTS(SELECT platform_id
-                FROM championship_platform
-                WHERE championship_platform.championship_id = start_championship.championship_id)) = true)
+    IF (EXISTS(SELECT judge_team_id
+               FROM judge_team
+                        JOIN judge on judge_team.judge_team_id = judge.judge_team_id
+               WHERE judge.championship_id = start_championship.championship_id) AND
+        EXISTS(SELECT leader_id
+               FROM team
+                        JOIN participant on team.team_id = participant.team_id
+               WHERE participant.championship_id = start_championship.championship_id) AND
+        EXISTS(SELECT platform_id
+               FROM championship_platform
+               WHERE championship_platform.championship_id = start_championship.championship_id))
     THEN
         UPDATE championship
         SET begin_date = now()
@@ -357,43 +357,26 @@ $$ LANGUAGE plpgSQL;
 
 
 -- Checks
-CREATE OR REPLACE FUNCTION checkPersonal_info(first_name character[20],
-                                              last_name character[20],
-                                              birth_date date) RETURNS boolean
+CREATE OR REPLACE FUNCTION person_contact_info_check() RETURNS trigger
 AS
-$$
+$checkPersonContactInfo$
 BEGIN
-    IF first_name IS NULL THEN
-        RAISE EXCEPTION 'first_name can not be null';
-    END IF;
-    IF last_name IS NULL THEN
-        RAISE EXCEPTION 'last_name can not be null';
-    END IF;
-    IF birth_date IS NULL THEN
-        RAISE EXCEPTION 'birth_date can not be null';
-    END IF;
-    RETURN true;
-END;
-
-$$ LANGUAGE plpgSQL;
-
-CREATE FUNCTION participantCheck() RETURNS trigger AS
-$checkParticipant$
-BEGIN
-    IF checkPersonal_info(NEW.first_name, NEW.last_name, NEW.birth_date) != true THEN
-        RAISE EXCEPTION 'please check personal information';
-    END IF;
-    IF age(NEW.person_id) IS NULL THEN
-        RAISE EXCEPTION 'age can not be null';
-    END IF;
-    IF age(NEW.person_id) > 27 THEN
-        RAISE EXCEPTION 'participant should be under 27';
-    END IF;
     IF NOT EXISTS(SELECT NEW.person_id FROM email WHERE NEW.person_id = email.person_id) THEN
-        RAISE EXCEPTION 'participant should have an email';
+        RAISE EXCEPTION 'person should have an email';
     END IF;
     IF NOT EXISTS(SELECT NEW.person_id FROM phone WHERE NEW.person_id = phone.person_id) THEN
-        RAISE EXCEPTION 'participant should have an phone number';
+        RAISE EXCEPTION 'person should have an phone number';
+    END IF;
+END;
+
+$checkPersonContactInfo$ LANGUAGE plpgSQL;
+
+CREATE FUNCTION participant_check() RETURNS trigger AS
+$checkParticipant$
+BEGIN
+
+    IF age(NEW.person_id) > 27 THEN
+        RAISE EXCEPTION 'participant should be under 27';
     END IF;
     IF EXISTS(SELECT NEW.person_id FROM judge WHERE NEW.person_id = judge.person_id) THEN
         RAISE EXCEPTION 'participant can not be a jude';
@@ -404,23 +387,12 @@ BEGIN
 END;
 $checkParticipant$ LANGUAGE plpgsql;
 
-CREATE FUNCTION mentorCheck() RETURNS trigger AS
+CREATE FUNCTION mentor_check() RETURNS trigger AS
 $checkMentor$
 BEGIN
-    IF checkPersonal_info(NEW.first_name, NEW.last_name, NEW.birth_date) != true THEN
-        RAISE EXCEPTION 'please check personal information';
-    END IF;
-    IF age(NEW.person_id) IS NULL THEN
-        RAISE EXCEPTION 'age can not be null';
-    END IF;
+
     IF age(NEW.person_id) < 21 THEN
         RAISE EXCEPTION 'mentor should be older then 21';
-    END IF;
-    IF NOT EXISTS(SELECT NEW.person_id FROM email WHERE NEW.person_id = email.person_id) THEN
-        RAISE EXCEPTION 'mentor should have an email';
-    END IF;
-    IF NOT EXISTS(SELECT NEW.person_id FROM phone WHERE NEW.person_id = phone.person_id) THEN
-        RAISE EXCEPTION 'mentor should have an phone number';
     END IF;
     IF NOT EXISTS(SELECT NEW.person_id FROM people_publication WHERE NEW.person_id = people_publication.person_id) THEN
         RAISE EXCEPTION 'mentor should have one or more publications';
@@ -428,26 +400,22 @@ BEGIN
     IF EXISTS(SELECT NEW.person_id FROM judge WHERE NEW.person_id = judge.person_id) THEN
         RAISE EXCEPTION 'mentor can not be a jude';
     END IF;
-    IF EXISTS(SELECT NEW.person_id FROM participant WHERE NEW.person_id = participant.person_id) THEN
+    IF EXISTS(SELECT championship_id
+              FROM participant
+              WHERE NEW.person_id = participant.person_id) THEN
         RAISE EXCEPTION 'mentor can not be a participant';
     END IF;
 END;
 $checkMentor$ LANGUAGE plpgsql;
 
-CREATE FUNCTION judgeCheck() RETURNS trigger AS
+CREATE FUNCTION judge_check() RETURNS trigger AS
 $checkJudge$
 BEGIN
-    IF checkPersonal_info(NEW.first_name, NEW.last_name, NEW.birth_date) != true THEN
-        RAISE EXCEPTION 'please check personal information';
+    IF age(NEW.person_id) < 27 THEN
+        RAISE EXCEPTION 'jude should be older then 27';
     END IF;
-    IF age(NEW.person_id) IS NULL THEN
-        RAISE EXCEPTION 'age can not be null';
-    END IF;
-    IF NOT EXISTS(SELECT NEW.person_id FROM email WHERE NEW.person_id = email.person_id) THEN
-        RAISE EXCEPTION 'jude should have an email';
-    END IF;
-    IF NOT EXISTS(SELECT NEW.person_id FROM phone WHERE NEW.person_id = phone.person_id) THEN
-        RAISE EXCEPTION 'jude should have an phone number';
+    IF NOT EXISTS(SELECT NEW.person_id FROM people_publication WHERE NEW.person_id = people_publication.person_id) THEN
+        RAISE EXCEPTION 'jude should have one or more publications';
     END IF;
     IF EXISTS(SELECT NEW.person_id FROM mentor WHERE NEW.person_id = mentor.person_id) THEN
         RAISE EXCEPTION 'jude can not be a mentor';
@@ -458,7 +426,7 @@ BEGIN
 END;
 $checkJudge$ LANGUAGE plpgsql;
 
-CREATE FUNCTION teamCheck() RETURNS trigger AS
+CREATE FUNCTION team_check() RETURNS trigger AS
 $checkTeam$
 BEGIN
     IF leader_id IS NULL THEN
@@ -484,22 +452,28 @@ CREATE TRIGGER checkParticipant
     BEFORE INSERT OR UPDATE
     ON people
     FOR EACH ROW
-EXECUTE PROCEDURE participantCheck();
+EXECUTE PROCEDURE participant_check();
 
 CREATE TRIGGER checkMentor
     BEFORE INSERT OR UPDATE
     ON people
     FOR EACH ROW
-EXECUTE PROCEDURE mentorCheck();
+EXECUTE PROCEDURE mentor_check();
 
 CREATE TRIGGER checkJudge
     BEFORE INSERT OR UPDATE
     ON people
     FOR EACH ROW
-EXECUTE PROCEDURE judgeCheck();
+EXECUTE PROCEDURE judge_check();
 
 CREATE TRIGGER checkTeam
     BEFORE INSERT OR UPDATE
     ON team
     FOR EACH ROW
-EXECUTE PROCEDURE teamCheck();
+EXECUTE PROCEDURE team_check();
+
+CREATE TRIGGER checkPersonContactInfo
+    BEFORE INSERT OR UPDATE
+    ON people
+    FOR EACH ROW
+EXECUTE PROCEDURE person_contact_info_check();
