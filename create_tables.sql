@@ -457,7 +457,7 @@ BEGIN
                WHERE NEW.person_id = judge.person_id)) THEN
         RAISE EXCEPTION 'jude can not be a mentor in the same championship';
     END IF;
-    IF EXISTS((SELECT NEW.person_id FROM participant WHERE NEW.person_id = participant.person_id)
+    IF EXISTS((SELECT championship_id FROM participant WHERE NEW.person_id = participant.person_id)
               INTERSECT
               (SELECT championship_id
                FROM judge
