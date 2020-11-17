@@ -325,7 +325,26 @@ BEGIN
         UPDATE championship
         SET begin_date = now()
         WHERE championship_id = start_championship.championship_id;
-        -- TODO: check all entities
+    END IF;
+    --FIXME: don't know how "performance_time" can influence the process of starting
+END;
+$$ LANGUAGE plpgSQL;
+
+
+CREATE OR REPLACE FUNCTION check_project(champ_id integer) RETURNS boolean
+AS
+$$
+BEGIN
+    IF EXISTS((SELECT project_id
+               FROM project_case
+                        INNER JOIN "case" on project_case.case_id = "case".case_id
+               WHERE complexity <= 10)
+              INTERSECT
+              (SELECT project_id
+               FROM project
+                        INNER JOIN team on team.team_id = project.team_id
+               WHERE team.championship_id = champ_id)) THEN
+        RETURN true;
     END IF;
 END;
 $$ LANGUAGE plpgSQL;
@@ -334,6 +353,8 @@ CREATE OR REPLACE FUNCTION end_championship(championship_id integer) RETURNS VOI
 AS
 $$
 BEGIN
+    IF check_project(championship_id) = true THEN
+    END IF;
     -- TODO: 1) check is all performance rated
     --       2) calculate score table
 END;
@@ -394,16 +415,26 @@ BEGIN
     IF age(NEW.person_id) < 21 THEN
         RAISE EXCEPTION 'mentor should be older then 21';
     END IF;
-    IF NOT EXISTS(SELECT NEW.person_id FROM people_publication WHERE NEW.person_id = people_publication.person_id) THEN
+    IF NOT EXISTS(SELECT NEW.person_id
+                  FROM people_publication
+                  WHERE NEW.person_id = people_publication.person_id) THEN
         RAISE EXCEPTION 'mentor should have one or more publications';
     END IF;
-    IF EXISTS(SELECT NEW.person_id FROM judge WHERE NEW.person_id = judge.person_id) THEN
-        RAISE EXCEPTION 'mentor can not be a jude';
+    IF EXISTS((SELECT championship_id FROM judge WHERE NEW.person_id = judge.person_id)
+              INTERSECT
+              (SELECT championship_id
+               FROM mentor
+               WHERE NEW.person_id = mentor.person_id)) THEN
+        RAISE EXCEPTION 'mentor can not be a jude in the same championship';
     END IF;
-    IF EXISTS(SELECT championship_id
-              FROM participant
-              WHERE NEW.person_id = participant.person_id) THEN
-        RAISE EXCEPTION 'mentor can not be a participant';
+    IF EXISTS((SELECT championship_id
+               FROM participant
+               WHERE NEW.person_id = participant.person_id)
+              INTERSECT
+              (SELECT championship_id
+               FROM mentor
+               WHERE NEW.person_id = mentor.person_id)) THEN
+        RAISE EXCEPTION 'mentor can not be a participant in the same championship';
     END IF;
 END;
 $checkMentor$ LANGUAGE plpgsql;
@@ -414,14 +445,24 @@ BEGIN
     IF age(NEW.person_id) < 27 THEN
         RAISE EXCEPTION 'jude should be older then 27';
     END IF;
-    IF NOT EXISTS(SELECT NEW.person_id FROM people_publication WHERE NEW.person_id = people_publication.person_id) THEN
+    IF NOT EXISTS(SELECT NEW.person_id
+                  FROM people_publication
+                  WHERE NEW.person_id = people_publication.person_id) THEN
         RAISE EXCEPTION 'jude should have one or more publications';
     END IF;
-    IF EXISTS(SELECT NEW.person_id FROM mentor WHERE NEW.person_id = mentor.person_id) THEN
-        RAISE EXCEPTION 'jude can not be a mentor';
+    IF EXISTS((SELECT championship_id FROM mentor WHERE NEW.person_id = mentor.person_id)
+              INTERSECT
+              (SELECT championship_id
+               FROM judge
+               WHERE NEW.person_id = judge.person_id)) THEN
+        RAISE EXCEPTION 'jude can not be a mentor in the same championship';
     END IF;
-    IF EXISTS(SELECT NEW.person_id FROM participant WHERE NEW.person_id = participant.person_id) THEN
-        RAISE EXCEPTION 'jude can not be a participant';
+    IF EXISTS((SELECT NEW.person_id FROM participant WHERE NEW.person_id = participant.person_id)
+              INTERSECT
+              (SELECT championship_id
+               FROM judge
+               WHERE NEW.person_id = judge.person_id)) THEN
+        RAISE EXCEPTION 'jude can not be a participant in the same championship';
     END IF;
 END;
 $checkJudge$ LANGUAGE plpgsql;
