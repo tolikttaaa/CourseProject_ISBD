@@ -1,12 +1,12 @@
 --insert in publication (работает)
-SELECT * FROM create_publication('web developers in real world','Topic about Evgeny A. Tsopa');
-SELECT * FROM create_publication('front-end developers in real world','Topic about front-end');
-SELECT * FROM create_publication('back-end developers in real world','Topic about back-end');
-SELECT * FROM create_publication('UI/UX designers in real world','Topic about UI/UX');
-SELECT * FROM create_publication('The activation stack.','Topic about activation in stack');
-SELECT * FROM create_publication('The C Language','Topic about C Language');
-SELECT * FROM create_publication('Functions in C','Topic about functions');
-SELECT * FROM create_publication('Command Line Args','Topic about Line Args');
+SELECT * FROM insert_publication('web developers in real world','Topic about Evgeny A. Tsopa');
+SELECT * FROM insert_publication('front-end developers in real world','Topic about front-end');
+SELECT * FROM insert_publication('back-end developers in real world','Topic about back-end');
+SELECT * FROM insert_publication('UI/UX designers in real world','Topic about UI/UX');
+SELECT * FROM insert_publication('The activation stack.','Topic about activation in stack');
+SELECT * FROM insert_publication('The C Language','Topic about C Language');
+SELECT * FROM insert_publication('Functions in C','Topic about functions');
+SELECT * FROM insert_publication('Command Line Args','Topic about Line Args');
 
 --insert participants (оно работает, но сначала надо добавить чемпионаты)
 SELECT * FROM insert_participant('James','Adams','2000-07-8',1,'89765432','Adams@mail.ru');

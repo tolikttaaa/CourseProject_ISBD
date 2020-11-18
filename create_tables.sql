@@ -3,11 +3,11 @@ CREATE TABLE people
     person_id  serial PRIMARY KEY,
     first_name text NOT NULL,
     last_name  text NOT NULL,
-    birth_date date          NOT NULL CHECK (birth_date <= NOW())
+    birth_date date NOT NULL CHECK (birth_date <= NOW())
 );
 
 -- function that return age of the person by his ID
-CREATE OR REPLACE FUNCTION age(person integer) RETURNS integer AS
+CREATE OR REPLACE FUNCTION people_age(person integer) RETURNS integer AS
 $$
 DECLARE
     age integer;
@@ -22,10 +22,6 @@ BEGIN
 END;
 
 $$ LANGUAGE plpgSQL;
-
-CREATE VIEW people_view AS
-SELECT *, age(person_id) AS age
-FROM people;
 
 CREATE TABLE publication
 (
@@ -180,12 +176,10 @@ DECLARE
     person integer;
 
 BEGIN
-    INSERT INTO people (first_name, last_name, birth_date)
-    VALUES (insert_participant.first_name, insert_participant.last_name, insert_participant.birth_date);
+    SELECT NEXTVAL('people_person_id_seq') INTO person;
 
-    SELECT max(person_id)
-    INTO person
-    FROM people;
+    INSERT INTO people (person_id, first_name, last_name, birth_date)
+    VALUES (person, insert_participant.first_name, insert_participant.last_name, insert_participant.birth_date);
 
     INSERT INTO email (email, person_id) VALUES (insert_participant.email_address, person);
     INSERT INTO phone (phone_number, person_id) VALUES (insert_participant.phone_number, person);
@@ -212,7 +206,7 @@ BEGIN
     END IF;
 
     INSERT INTO team (name, championship_id) VALUES (insert_team.name, insert_team.championship_id);
-    SELECT max(team_id) INTO team_number FROM team;
+    SELECT CURRVAL('team_team_id_seq') INTO team_number;
 
     FOREACH person IN ARRAY participants
         LOOP
@@ -253,12 +247,8 @@ $$
 DECLARE
     cur_mentor  integer;
     team_number integer;
-
 BEGIN
     PERFORM insert_team(name, participants, leader_id, championship_id) INTO team_number;
-
-    INSERT INTO team (name) VALUES (insert_team.name);
-    SELECT max(team_id) INTO team_number FROM team;
 
     FOREACH cur_mentor IN ARRAY mentors
         LOOP
@@ -269,19 +259,29 @@ BEGIN
 END;
 $$ LANGUAGE plpgSQL;
 
--- create project
---FIXME
-CREATE OR REPLACE FUNCTION add_case(project_id integer,
+-- add cases for championship
+CREATE OR REPLACE FUNCTION add_case_to_championship(championship_id integer,
+                                    case_id integer) RETURNS VOID AS
+$$
+BEGIN
+    INSERT INTO championship_case (championship_id, case_id)
+    VALUES (add_case_to_championship.championship_id,
+            add_case_to_championship.case_id);
+END;
+$$ LANGUAGE plpgSQL;
+
+-- add cases for project
+CREATE OR REPLACE FUNCTION add_case_to_project(project_id integer,
                                     case_id integer) RETURNS VOID AS
 $$
 BEGIN
     INSERT INTO project_case (project_id, case_id)
-    VALUES (add_case.project_id,
-            add_case.case_id);
+    VALUES (add_case_to_project.project_id,
+            add_case_to_project.case_id);
 END;
 $$ LANGUAGE plpgSQL;
---FIXME
-CREATE OR REPLACE FUNCTION create_project(name text,
+
+CREATE OR REPLACE FUNCTION insert_project(name text,
                                           team_id integer,
                                           cases integer[],
                                           description text) RETURNS integer AS
@@ -291,15 +291,14 @@ DECLARE
     project_number integer;
 
 BEGIN
-    INSERT INTO project (name) VALUES (create_project.name);
-    INSERT INTO project (team_id) VALUES (create_project.team_id);
-    INSERT INTO project (description) VALUES (create_project.description);
-
-    SELECT max(project_id) INTO project_number FROM project;
+    INSERT INTO project (name, team_id, description) VALUES (insert_project.name,
+                                                             insert_project.team_id,
+                                                             insert_project.description);
+    SELECT CURRVAL('project_project_id_seq') INTO project_number;
 
     FOREACH cur_case IN ARRAY cases
         LOOP
-            PERFORM add_case(project_number, cur_case);
+            PERFORM add_case_to_project(project_number, cur_case);
         END LOOP;
 
     RETURN project_number;
@@ -310,14 +309,13 @@ $$ LANGUAGE plpgSQL;
 CREATE OR REPLACE FUNCTION add_platform(championship_id integer, platform_id integer) RETURNS VOID AS
 $$
 BEGIN
-    --FIXME
     INSERT INTO championship_platform (championship_id, platform_id)
     VALUES (add_platform.championship_id,
             add_platform.platform_id);
 END;
 $$ LANGUAGE plpgSQL;
 
-CREATE OR REPLACE FUNCTION create_championship() RETURNS VOID AS
+CREATE OR REPLACE FUNCTION insert_championship(name text, description text, cases integer[], platforms integer[]) RETURNS VOID AS
 $$
 BEGIN
     -- TODO
@@ -325,25 +323,29 @@ END;
 $$ LANGUAGE plpgSQL;
 
 
-CREATE OR REPLACE FUNCTION create_judge_team(person_id integer,
-                                             judge_team_id integer,
+CREATE OR REPLACE FUNCTION insert_judge_team(judges integer[],
                                              championship_id integer) RETURNS VOID AS
 $$
+DECLARE
+    cur_judge integer;
 BEGIN
-    --FIXME
-    IF (SELECT judge.championship_id FROM judge WHERE judge.person_id = create_judge_team.person_id) =
-       championship_id THEN
-        INSERT INTO judge (judge_team_id) VALUES (create_judge_team.judge_team_id);
-    END IF;
+    FOREACH cur_judge IN ARRAY judges
+        LOOP
+            INSERT INTO judge_team DEFAULT VALUES;
+
+            UPDATE judge
+            SET judge.judge_team_id = CURRVAL('judge_team_judge_team_id_seq')
+            WHERE person_id = cur_judge AND judge.championship_id = insert_judge_team.championship_id;
+        END LOOP;
 END;
 $$ LANGUAGE plpgSQL;
 
 
-CREATE OR REPLACE FUNCTION create_publication(name text, description text) RETURNS VOID AS
+CREATE OR REPLACE FUNCTION insert_publication(name text, description text) RETURNS integer AS
 $$
 BEGIN
-    --FIXME
-    INSERT INTO publication (name, description) VALUES (create_publication.name, create_publication.description);
+    INSERT INTO publication (name, description) VALUES (insert_publication.name, insert_publication.description);
+    RETURN (CURRVAL('publication_publication_id_seq'));
 END;
 $$ LANGUAGE plpgSQL;
 
@@ -351,13 +353,28 @@ $$ LANGUAGE plpgSQL;
 CREATE OR REPLACE FUNCTION add_publication(person_id integer, publication_id integer) RETURNS VOID AS
 $$
 BEGIN
-    --FIXME
     INSERT INTO people_publication (person_id, publication_id)
     VALUES (add_publication.person_id,
             add_publication.publication_id);
 END;
 $$ LANGUAGE plpgSQL;
 
+CREATE OR REPLACE FUNCTION insert_publication_with_authors(name text, description text, authors integer[]) RETURNS integer AS
+$$
+DECLARE
+    cur_author  integer;
+    publication_number integer;
+BEGIN
+    PERFORM insert_publication(name, description) INTO publication_number;
+
+    FOREACH cur_author IN ARRAY authors
+        LOOP
+            PERFORM add_publication(cur_author, publication_number);
+        END LOOP;
+
+    RETURN publication_number;
+END;
+$$ LANGUAGE plpgSQL;
 
 CREATE OR REPLACE FUNCTION rate_performance(performance_id integer, points real) RETURNS VOID AS
 $$
@@ -545,14 +562,11 @@ CREATE OR REPLACE FUNCTION get_results(champ_id integer)
                 final_score   integer,
                 place         integer,
                 special_award text
-            )
-AS
+            ) AS
 $$
 BEGIN
-    -- FIXME
     RETURN QUERY SELECT team.team_id, team.name, final_score, place, special_award
-                 FROM team
-                          INNER JOIN score ON team.team_id = score.team_id
+                 FROM team INNER JOIN score ON team.team_id = score.team_id
                  WHERE team.championship_id = champ_id
                  ORDER BY place;
 END;
@@ -573,11 +587,10 @@ BEGIN
 END;
 $checkPersonContactInfo$ LANGUAGE plpgSQL;
 
-CREATE OR REPLACE FUNCTION check_participant() RETURNS trigger
-AS
+CREATE OR REPLACE FUNCTION check_participant() RETURNS trigger AS
 $checkParticipant$
 BEGIN
-    IF age(NEW.person_id) > 27 THEN
+    IF people_age(NEW.person_id) > 27 THEN
         RAISE EXCEPTION 'participant should be under 27';
     END IF;
 
@@ -595,7 +608,7 @@ BEGIN
         RAISE EXCEPTION 'participant can not be a judge in the same championship';
     END IF;
 --FIXME эта проверка не работает (она не дает вставить точно верный результат)
-    IF NOT (NEW.team_id IS NULL) AND NEW.championship_id != ALL
+    IF NEW.team_id IS NOT NULL AND NEW.championship_id != ANY
                                    (SELECT participant.championship_id
                                     FROM participant
                                     WHERE team_id = NEW.team_id) THEN
@@ -608,7 +621,7 @@ $checkParticipant$ LANGUAGE plpgsql;
 CREATE FUNCTION check_mentor() RETURNS trigger AS
 $checkMentor$
 BEGIN
-    IF age(NEW.person_id) < 21 THEN
+    IF people_age(NEW.person_id) < 21 THEN
         RAISE EXCEPTION 'mentor should be older then 21';
     END IF;
 
@@ -638,7 +651,7 @@ $checkMentor$ LANGUAGE plpgsql;
 CREATE FUNCTION check_judge() RETURNS trigger AS
 $checkJudge$
 BEGIN
-    IF age(NEW.person_id) < 27 THEN
+    IF people_age(NEW.person_id) < 27 THEN
         RAISE EXCEPTION 'jude should be older then 27';
     END IF;
 
@@ -675,8 +688,7 @@ $checkJudge$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION check_mentor_team_dependency() RETURNS trigger AS
 $checkMentorTeamDependency$
 BEGIN
-    --FIXME
-    IF NOT EXISTS(SELECT * FROM team WHERE NEW.championship_id = team.championship_id) THEN
+    IF NOT EXISTS(SELECT * FROM team WHERE NEW.championship_id = team.championship_id AND NEW.team_id = team.team_id) THEN
         RAISE EXCEPTION 'Mentor and team should be in one championship';
     END IF;
 RETURN NEW;
@@ -702,13 +714,24 @@ CREATE TRIGGER checkJudge
     FOR EACH ROW
 EXECUTE PROCEDURE check_judge();
 
-CREATE TRIGGER checkPersonContactInfo
+CREATE TRIGGER checkParticipantContactInfo
     BEFORE INSERT OR UPDATE
     ON participant
     FOR EACH ROW
 EXECUTE PROCEDURE check_person_contact_info();
 
---FIXME
+CREATE TRIGGER checkMentorContactInfo
+    BEFORE INSERT OR UPDATE
+    ON mentor
+    FOR EACH ROW
+EXECUTE PROCEDURE check_person_contact_info();
+
+CREATE TRIGGER checkJudgeContactInfo
+    BEFORE INSERT OR UPDATE
+    ON judge
+    FOR EACH ROW
+EXECUTE PROCEDURE check_person_contact_info();
+
 CREATE TRIGGER checkMentorTeamDependency
     BEFORE INSERT OR UPDATE
     ON mentor_team
