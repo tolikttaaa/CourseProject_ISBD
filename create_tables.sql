@@ -47,8 +47,8 @@ CREATE TABLE championship
     championship_id serial PRIMARY KEY,
     name            text NOT NULL,
     description     text,
-    begin_date      date NOT NULL,
-    end_date        date
+    begin_date      date DEFAULT NULL,
+    end_date        date DEFAULT NULL
 );
 
 CREATE TABLE team
@@ -259,17 +259,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgSQL;
 
--- add cases for championship
-CREATE OR REPLACE FUNCTION add_case_to_championship(championship_id integer,
-                                    case_id integer) RETURNS VOID AS
-$$
-BEGIN
-    INSERT INTO championship_case (championship_id, case_id)
-    VALUES (add_case_to_championship.championship_id,
-            add_case_to_championship.case_id);
-END;
-$$ LANGUAGE plpgSQL;
-
 -- add cases for project
 CREATE OR REPLACE FUNCTION add_case_to_project(project_id integer,
                                     case_id integer) RETURNS VOID AS
@@ -305,7 +294,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgSQL;
 
-
 CREATE OR REPLACE FUNCTION add_platform(championship_id integer, platform_id integer) RETURNS VOID AS
 $$
 BEGIN
@@ -315,10 +303,38 @@ BEGIN
 END;
 $$ LANGUAGE plpgSQL;
 
-CREATE OR REPLACE FUNCTION insert_championship(name text, description text, cases integer[], platforms integer[]) RETURNS VOID AS
+-- add cases for championship
+CREATE OR REPLACE FUNCTION add_case_to_championship(championship_id integer,
+                                    case_id integer) RETURNS VOID AS
 $$
 BEGIN
-    -- TODO
+    INSERT INTO championship_case (championship_id, case_id)
+    VALUES (add_case_to_championship.championship_id,
+            add_case_to_championship.case_id);
+END;
+$$ LANGUAGE plpgSQL;
+
+CREATE OR REPLACE FUNCTION insert_championship(name text, description text, cases integer[], platforms integer[]) RETURNS integer AS
+$$
+DECLARE
+    championship_number integer;
+    cur_case integer;
+    cur_platform integer;
+BEGIN
+    INSERT INTO championship (name, description) VALUES (insert_championship.name, insert_championship.description);
+    SELECT CURRVAL('championship_championship_id_seq') INTO championship_number;
+
+    FOREACH cur_case IN ARRAY cases
+        LOOP
+            PERFORM add_case_to_championship(championship_number, cur_case);
+        END LOOP;
+
+    FOREACH cur_platform IN ARRAY platforms
+        LOOP
+            PERFORM add_platform(championship_number, cur_platform);
+        END LOOP;
+
+    RETURN championship_number;
 END;
 $$ LANGUAGE plpgSQL;
 
