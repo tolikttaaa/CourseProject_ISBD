@@ -172,7 +172,9 @@ CREATE TABLE people_publication
 CREATE OR REPLACE FUNCTION insert_participant(first_name text,
                                               last_name text,
                                               birth_date date,
-                                              championship_id integer) RETURNS integer AS
+                                              championship_id integer,
+                                              phone_number text,
+                                              email_address text) RETURNS integer AS
 $$
 DECLARE
     person integer;
@@ -184,6 +186,9 @@ BEGIN
     SELECT max(person_id)
     INTO person
     FROM people;
+
+    INSERT INTO email (email, person_id) VALUES (insert_participant.email_address, person);
+    INSERT INTO phone (phone_number, person_id) VALUES (insert_participant.phone_number, person);
 
     INSERT INTO participant (person_id, championship_id)
     VALUES (person, insert_participant.championship_id);
@@ -214,7 +219,7 @@ BEGIN
             UPDATE participant
             SET team_id = team_number
             WHERE person_id = person
-              AND championship_id = insert_team.championship_id;
+              AND participant.championship_id = insert_team.championship_id;
         END LOOP;
 
     UPDATE team
@@ -239,7 +244,7 @@ END;
 $$ LANGUAGE plpgSQL;
 
 -- create team with participant and mentors
-CREATE OR REPLACE FUNCTION insert_team(name text,
+CREATE OR REPLACE FUNCTION insert_team_with_mentor(name text,
                                        participants integer[],
                                        mentors integer[],
                                        leader_id integer,
@@ -564,10 +569,11 @@ BEGIN
     IF NOT EXISTS(SELECT NEW.person_id FROM phone WHERE NEW.person_id = phone.person_id) THEN
         RAISE EXCEPTION 'person should have an phone number';
     END IF;
+    RETURN NEW;
 END;
 $checkPersonContactInfo$ LANGUAGE plpgSQL;
 
-CREATE FUNCTION check_participant() RETURNS trigger
+CREATE OR REPLACE FUNCTION check_participant() RETURNS trigger
 AS
 $checkParticipant$
 BEGIN
@@ -588,13 +594,14 @@ BEGIN
                 AND NEW.championship_id = judge.championship_id) THEN
         RAISE EXCEPTION 'participant can not be a judge in the same championship';
     END IF;
-
-    IF NEW.team_id IS NOT NULL AND NEW.championship_id != ALL
+--FIXME эта проверка не работает (она не дает вставить точно верный результат)
+    IF NOT (NEW.team_id IS NULL) AND NEW.championship_id != ALL
                                    (SELECT participant.championship_id
                                     FROM participant
                                     WHERE team_id = NEW.team_id) THEN
         RAISE EXCEPTION 'Participants in one team should be from one championship';
     END IF;
+    RETURN NEW;
 END;
 $checkParticipant$ LANGUAGE plpgsql;
 
@@ -624,6 +631,7 @@ BEGIN
                 AND NEW.championship_id = participant.championship_id) THEN
         RAISE EXCEPTION 'mentor can not be a participant in the same championship';
     END IF;
+    RETURN NEW;
 END;
 $checkMentor$ LANGUAGE plpgsql;
 
@@ -660,6 +668,7 @@ BEGIN
                                           WHERE judge_team_id = NEW.judge_team_id) THEN
         RAISE EXCEPTION 'Judges in one judge team should be from one championship';
     END IF;
+    RETURN NEW;
 END;
 $checkJudge$ LANGUAGE plpgsql;
 
@@ -670,6 +679,7 @@ BEGIN
     IF NOT EXISTS(SELECT * FROM team WHERE NEW.championship_id = team.championship_id) THEN
         RAISE EXCEPTION 'Mentor and team should be in one championship';
     END IF;
+RETURN NEW;
 END;
 $checkMentorTeamDependency$ LANGUAGE plpgSQL;
 
@@ -694,7 +704,7 @@ EXECUTE PROCEDURE check_judge();
 
 CREATE TRIGGER checkPersonContactInfo
     BEFORE INSERT OR UPDATE
-    ON people
+    ON participant
     FOR EACH ROW
 EXECUTE PROCEDURE check_person_contact_info();
 
