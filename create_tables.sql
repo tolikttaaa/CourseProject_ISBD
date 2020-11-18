@@ -1,8 +1,8 @@
 CREATE TABLE people
 (
     person_id  serial PRIMARY KEY,
-    first_name character[20] NOT NULL,
-    last_name  character[20] NOT NULL,
+    first_name text NOT NULL,
+    last_name  text NOT NULL,
     birth_date date          NOT NULL CHECK (birth_date <= NOW())
 );
 
@@ -36,13 +36,13 @@ CREATE TABLE publication
 
 CREATE TABLE email
 (
-    email     character[50] PRIMARY KEY,
+    email     text PRIMARY KEY,
     person_id integer REFERENCES people (person_id) ON DELETE CASCADE
 );
 
 CREATE TABLE phone
 (
-    phone_number character[15] PRIMARY KEY NOT NULL,
+    phone_number text PRIMARY KEY NOT NULL,
     person_id    integer REFERENCES people (person_id) ON DELETE CASCADE
 );
 
@@ -169,8 +169,8 @@ CREATE TABLE people_publication
 );
 
 -- insert fully new participant
-CREATE OR REPLACE FUNCTION insert_participant(first_name character[20],
-                                              last_name character[20],
+CREATE OR REPLACE FUNCTION insert_participant(first_name text,
+                                              last_name text,
                                               birth_date date,
                                               championship_id integer) RETURNS integer AS
 $$
@@ -264,6 +264,96 @@ BEGIN
 END;
 $$ LANGUAGE plpgSQL;
 
+-- create project
+--FIXME
+CREATE OR REPLACE FUNCTION add_case(project_id integer,
+                                    case_id integer) RETURNS VOID AS
+$$
+BEGIN
+    INSERT INTO project_case (project_id, case_id)
+    VALUES (add_case.project_id,
+            add_case.case_id);
+END;
+$$ LANGUAGE plpgSQL;
+--FIXME
+CREATE OR REPLACE FUNCTION create_project(name text,
+                                          team_id integer,
+                                          cases integer[],
+                                          description text) RETURNS integer AS
+$$
+DECLARE
+    cur_case       integer;
+    project_number integer;
+
+BEGIN
+    INSERT INTO project (name) VALUES (create_project.name);
+    INSERT INTO project (team_id) VALUES (create_project.team_id);
+    INSERT INTO project (description) VALUES (create_project.description);
+
+    SELECT max(project_id) INTO project_number FROM project;
+
+    FOREACH cur_case IN ARRAY cases
+        LOOP
+            PERFORM add_case(project_number, cur_case);
+        END LOOP;
+
+    RETURN project_number;
+END;
+$$ LANGUAGE plpgSQL;
+
+
+CREATE OR REPLACE FUNCTION add_platform(championship_id integer, platform_id integer) RETURNS VOID AS
+$$
+BEGIN
+    --FIXME
+    INSERT INTO championship_platform (championship_id, platform_id)
+    VALUES (add_platform.championship_id,
+            add_platform.platform_id);
+END;
+$$ LANGUAGE plpgSQL;
+
+CREATE OR REPLACE FUNCTION create_championship() RETURNS VOID AS
+$$
+BEGIN
+    -- TODO
+END;
+$$ LANGUAGE plpgSQL;
+
+
+CREATE OR REPLACE FUNCTION create_judge_team(person_id integer,
+                                             judge_team_id integer,
+                                             championship_id integer) RETURNS VOID AS
+$$
+BEGIN
+    --FIXME
+    IF (SELECT judge.championship_id FROM judge WHERE judge.person_id = create_judge_team.person_id) =
+       championship_id THEN
+        INSERT INTO judge (judge_team_id) VALUES (create_judge_team.judge_team_id);
+    END IF;
+END;
+$$ LANGUAGE plpgSQL;
+
+
+CREATE OR REPLACE FUNCTION create_publication(name text, description text) RETURNS VOID AS
+$$
+BEGIN
+    --FIXME
+    INSERT INTO publication (name, description) VALUES (create_publication.name, create_publication.description);
+END;
+$$ LANGUAGE plpgSQL;
+
+
+CREATE OR REPLACE FUNCTION add_publication(person_id integer, publication_id integer) RETURNS VOID AS
+$$
+BEGIN
+    --FIXME
+    INSERT INTO people_publication (person_id, publication_id)
+    VALUES (add_publication.person_id,
+            add_publication.publication_id);
+END;
+$$ LANGUAGE plpgSQL;
+
+
 CREATE OR REPLACE FUNCTION rate_performance(performance_id integer, points real) RETURNS VOID AS
 $$
 BEGIN
@@ -286,22 +376,24 @@ BEGIN
     END IF;
 
     FOR cur_team IN (SELECT * FROM team WHERE team.championship_id = check_teams.championship_id)
-    LOOP
-        SELECT COUNT(*) FROM participant WHERE team_id = cur_team.team_id INTO team_size;
+        LOOP
+            SELECT COUNT(*) FROM participant WHERE team_id = cur_team.team_id INTO team_size;
 
-        IF (team_size < 2) THEN
-            RAISE EXCEPTION 'Team can not have less than 2 participants';
-        END IF;
+            IF (team_size < 2) THEN
+                RAISE EXCEPTION 'Team can not have less than 2 participants';
+            END IF;
 
-        IF (team_size > 5) THEN
-            RAISE EXCEPTION 'Team can not have More than 5 participants';
-        END IF;
+            IF (team_size > 5) THEN
+                RAISE EXCEPTION 'Team can not have More than 5 participants';
+            END IF;
 
-        IF ((SELECT team_id FROM participant WHERE person_id = cur_team.leader_id
-            AND participant.championship_id = cur_team.championship_id) != cur_team.team_id) THEN
-            RAISE EXCEPTION 'Leader should be from this team';
-        END IF;
-    END LOOP;
+            IF ((SELECT team_id
+                 FROM participant
+                 WHERE person_id = cur_team.leader_id
+                   AND participant.championship_id = cur_team.championship_id) != cur_team.team_id) THEN
+                RAISE EXCEPTION 'Leader should be from this team';
+            END IF;
+        END LOOP;
     RETURN true;
 END;
 $$ LANGUAGE plpgsql;
@@ -310,8 +402,8 @@ CREATE OR REPLACE FUNCTION check_cases(championship_id integer) RETURNS boolean 
 $$
 BEGIN
     IF NOT EXISTS(SELECT case_id
-               FROM championship_case
-               WHERE championship_case.championship_id = check_cases.championship_id) THEN
+                  FROM championship_case
+                  WHERE championship_case.championship_id = check_cases.championship_id) THEN
         RAISE EXCEPTION 'Championship should contains at least one platform';
     END IF;
 
@@ -323,34 +415,47 @@ CREATE OR REPLACE FUNCTION check_projects(championship_id integer) RETURNS boole
 $$
 DECLARE
     cur_project project%rowtype;
-    cur_case "case"%rowtype;
+    cur_case    "case"%rowtype;
 BEGIN
-    IF NOT EXISTS(SELECT project_id FROM project
-                        INNER JOIN team ON team.team_id = project.team_id
-               WHERE team.championship_id = check_projects.championship_id) THEN
+    IF NOT EXISTS(SELECT project_id
+                  FROM project
+                           INNER JOIN team ON team.team_id = project.team_id
+                  WHERE team.championship_id = check_projects.championship_id) THEN
         RAISE EXCEPTION 'Championship should contains at least one project';
     END IF;
 
     FOR cur_project IN
-        (SELECT * FROM project WHERE (
-                SELECT team.championship_id FROM team WHERE team.team_id = project.team_id
-            ) = check_projects.championship_id)
-    LOOP
-        IF NOT EXISTS(SELECT * FROM "case" WHERE EXISTS(SELECT * FROM project_case
-                WHERE "case".case_id = project_case.case_id AND cur_project.project_id = project_case.project_id)) THEN
-            RAISE EXCEPTION 'Project should contains at least one case';
-        END IF;
-
-        FOR cur_case IN
-            (SELECT * FROM "case" WHERE EXISTS(SELECT * FROM project_case
-                WHERE "case".case_id = project_case.case_id AND cur_project.project_id = project_case.project_id))
+        (SELECT *
+         FROM project
+         WHERE (
+                   SELECT team.championship_id FROM team WHERE team.team_id = project.team_id
+               ) = check_projects.championship_id)
         LOOP
-            IF NOT EXISTS(SELECT * FROM championship_case WHERE case_id = cur_case.case_id
-                AND championship_case.championship_id = check_projects.championship_id) THEN
-                RAISE EXCEPTION 'This case cant be used in that championship';
+            IF NOT EXISTS(SELECT *
+                          FROM "case"
+                          WHERE EXISTS(SELECT *
+                                       FROM project_case
+                                       WHERE "case".case_id = project_case.case_id
+                                         AND cur_project.project_id = project_case.project_id)) THEN
+                RAISE EXCEPTION 'Project should contains at least one case';
             END IF;
+
+            FOR cur_case IN
+                (SELECT *
+                 FROM "case"
+                 WHERE EXISTS(SELECT *
+                              FROM project_case
+                              WHERE "case".case_id = project_case.case_id
+                                AND cur_project.project_id = project_case.project_id))
+                LOOP
+                    IF NOT EXISTS(SELECT *
+                                  FROM championship_case
+                                  WHERE case_id = cur_case.case_id
+                                    AND championship_case.championship_id = check_projects.championship_id) THEN
+                        RAISE EXCEPTION 'This case cant be used in that championship';
+                    END IF;
+                END LOOP;
         END LOOP;
-    END LOOP;
 
     RETURN true;
 END;
@@ -360,8 +465,8 @@ CREATE OR REPLACE FUNCTION check_platforms(championship_id integer) RETURNS bool
 $$
 BEGIN
     IF NOT EXISTS(SELECT platform_id
-               FROM championship_platform
-               WHERE championship_platform.championship_id = check_platforms.championship_id) THEN
+                  FROM championship_platform
+                  WHERE championship_platform.championship_id = check_platforms.championship_id) THEN
         RAISE EXCEPTION 'Championship should contains at least one platform';
     END IF;
 
@@ -374,20 +479,22 @@ $$
 DECLARE
     cur_judge_team judge_team%rowtype;
 BEGIN
-    IF NOT EXISTS(SELECT judge.judge_team_id FROM judge_team
-                    JOIN judge ON judge_team.judge_team_id = judge.judge_team_id
-                    WHERE judge.championship_id = check_judge_teams.championship_id) THEN
+    IF NOT EXISTS(SELECT judge.judge_team_id
+                  FROM judge_team
+                           JOIN judge ON judge_team.judge_team_id = judge.judge_team_id
+                  WHERE judge.championship_id = check_judge_teams.championship_id) THEN
         RAISE EXCEPTION 'Championship should contains at least one platform';
     END IF;
 
     FOR cur_judge_team IN
-        (SELECT * FROM judge_team
-        WHERE EXISTS(SELECT COUNT(*) FROM judge WHERE judge.judge_team_id = judge_team.judge_team_id))
-    LOOP
-        IF ((SELECT COUNT(*) FROM judge WHERE judge.judge_team_id = cur_judge_team.judge_team_id) != 3) THEN
-            RAISE EXCEPTION 'Judge teams should contains 3 judges.';
-        END IF;
-    END LOOP;
+        (SELECT *
+         FROM judge_team
+         WHERE EXISTS(SELECT COUNT(*) FROM judge WHERE judge.judge_team_id = judge_team.judge_team_id))
+        LOOP
+            IF ((SELECT COUNT(*) FROM judge WHERE judge.judge_team_id = cur_judge_team.judge_team_id) != 3) THEN
+                RAISE EXCEPTION 'Judge teams should contains 3 judges.';
+            END IF;
+        END LOOP;
 
     RETURN true;
 END;
@@ -396,7 +503,7 @@ $$ LANGUAGE plpgSQL;
 CREATE OR REPLACE FUNCTION check_performances(championship_id integer) RETURNS boolean AS
 $$
 BEGIN
---     TODO:
+    --     TODO:
 END;
 $$ LANGUAGE plpgSQL;
 
@@ -425,17 +532,24 @@ BEGIN
 END;
 $$ LANGUAGE plpgSQL;
 
-CREATE OR REPLACE FUNCTION get_results(championship_id integer)
-    RETURNS TABLE(
-                     team_id       integer,
-                     team_name     text,
-                     final_score   integer,
-                     place         integer,
-                     special_award text
-                 ) AS
+CREATE OR REPLACE FUNCTION get_results(champ_id integer)
+    RETURNS TABLE
+            (
+                team_id       integer,
+                team_name     text,
+                final_score   integer,
+                place         integer,
+                special_award text
+            )
+AS
 $$
 BEGIN
-    -- TODO
+    -- FIXME
+    RETURN QUERY SELECT team.team_id, team.name, final_score, place, special_award
+                 FROM team
+                          INNER JOIN score ON team.team_id = score.team_id
+                 WHERE team.championship_id = champ_id
+                 ORDER BY place;
 END;
 $$ LANGUAGE plpgSQL;
 
@@ -476,7 +590,9 @@ BEGIN
     END IF;
 
     IF NEW.team_id IS NOT NULL AND NEW.championship_id != ALL
-        (SELECT participant.championship_id FROM participant WHERE team_id = NEW.team_id) THEN
+                                   (SELECT participant.championship_id
+                                    FROM participant
+                                    WHERE team_id = NEW.team_id) THEN
         RAISE EXCEPTION 'Participants in one team should be from one championship';
     END IF;
 END;
@@ -539,11 +655,23 @@ BEGIN
     END IF;
 
     IF NEW.judge_team_id IS NOT NULL AND NEW.championship_id != ALL
-        (SELECT judge.championship_id FROM judge WHERE judge_team_id = NEW.judge_team_id) THEN
+                                         (SELECT judge.championship_id
+                                          FROM judge
+                                          WHERE judge_team_id = NEW.judge_team_id) THEN
         RAISE EXCEPTION 'Judges in one judge team should be from one championship';
     END IF;
 END;
 $checkJudge$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION check_mentor_team_dependency() RETURNS trigger AS
+$checkMentorTeamDependency$
+BEGIN
+    --FIXME
+    IF NOT EXISTS(SELECT * FROM team WHERE NEW.championship_id = team.championship_id) THEN
+        RAISE EXCEPTION 'Mentor and team should be in one championship';
+    END IF;
+END;
+$checkMentorTeamDependency$ LANGUAGE plpgSQL;
 
 -- Triggers
 CREATE TRIGGER checkParticipant
@@ -569,3 +697,13 @@ CREATE TRIGGER checkPersonContactInfo
     ON people
     FOR EACH ROW
 EXECUTE PROCEDURE check_person_contact_info();
+
+--FIXME
+CREATE TRIGGER checkMentorTeamDependency
+    BEFORE INSERT OR UPDATE
+    ON mentor_team
+    FOR EACH ROW
+EXECUTE PROCEDURE check_mentor_team_dependency();
+
+
+

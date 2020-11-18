@@ -30,5 +30,7 @@ DROP FUNCTION IF EXISTS check_participant() CASCADE;
 DROP FUNCTION IF EXISTS check_mentor() CASCADE;
 DROP FUNCTION IF EXISTS check_judge() CASCADE;
 DROP FUNCTION IF EXISTS check_team() CASCADE;
+DROP FUNCTION IF EXISTS check_mentor_team_dependency() CASCADE;
 DROP FUNCTION IF EXISTS check_project(integer) CASCADE;
 DROP FUNCTION IF EXISTS start_championship(integer) CASCADE;
+DROP FUNCTION IF EXISTS get_results(integer) CASCADE;
