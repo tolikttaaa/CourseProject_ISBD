@@ -7,8 +7,7 @@ CREATE TABLE people
 );
 
 -- function that return age of the person by his ID
-CREATE OR REPLACE FUNCTION age(person integer) RETURNS integer
-AS
+CREATE OR REPLACE FUNCTION age(person integer) RETURNS integer AS
 $$
 DECLARE
     age integer;
@@ -69,7 +68,7 @@ CREATE TABLE platform
     platform_id       serial PRIMARY KEY,
     name              text    NOT NULL,
     address           text    NOT NULL,
-    contact_person_id integer NOT NULL
+    contact_person_id integer REFERENCES people (person_id) ON DELETE SET NULL
 );
 
 CREATE TABLE judge_team
@@ -173,8 +172,7 @@ CREATE TABLE people_publication
 CREATE OR REPLACE FUNCTION insert_participant(first_name character[20],
                                               last_name character[20],
                                               birth_date date,
-                                              championship_id integer) RETURNS integer
-AS
+                                              championship_id integer) RETURNS integer AS
 $$
 DECLARE
     person integer;
@@ -194,38 +192,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgSQL;
 
--- insert fully new judge
-CREATE OR REPLACE FUNCTION insert_judge(first_name character[20],
-                                        last_name character[20],
-                                        birth_date date,
-                                        championship_id integer,
-                                        work text) RETURNS integer
-AS
-$$
-DECLARE
-    person integer;
-
-BEGIN
-    INSERT INTO people (first_name, last_name, birth_date)
-    VALUES (insert_judge.first_name, insert_judge.last_name, insert_judge.birth_date);
-
-    SELECT max(person_id)
-    INTO person
-    FROM people;
-
-    INSERT INTO judge (person_id, championship_id, work)
-    VALUES (person, insert_judge.championship_id, insert_judge.work);
-
-    RETURN person;
-END;
-$$ LANGUAGE plpgSQL;
-
 -- create team without mentors
 CREATE OR REPLACE FUNCTION insert_team(name text,
                                        participants integer[],
                                        leader_id integer,
-                                       championship_id integer) RETURNS integer
-AS
+                                       championship_id integer) RETURNS integer AS
 $$
 DECLARE
     person      integer;
@@ -257,8 +228,7 @@ $$ LANGUAGE plpgSQL;
 -- add mentor for the team
 CREATE OR REPLACE FUNCTION add_mentor_to_team(mentor_id integer,
                                               championship_id integer,
-                                              team_id integer) RETURNS VOID
-AS
+                                              team_id integer) RETURNS VOID AS
 $$
 BEGIN
     INSERT INTO mentor_team (person_id, championship_id, team_id)
@@ -273,8 +243,7 @@ CREATE OR REPLACE FUNCTION insert_team(name text,
                                        participants integer[],
                                        mentors integer[],
                                        leader_id integer,
-                                       championship_id integer) RETURNS integer
-AS
+                                       championship_id integer) RETURNS integer AS
 $$
 DECLARE
     cur_mentor  integer;
@@ -295,8 +264,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgSQL;
 
-CREATE OR REPLACE FUNCTION rate_performance(performance_id integer, points real) RETURNS VOID
-AS
+CREATE OR REPLACE FUNCTION rate_performance(performance_id integer, points real) RETURNS VOID AS
 $$
 BEGIN
     UPDATE performance
@@ -305,73 +273,151 @@ BEGIN
 END;
 $$ LANGUAGE plpgSQL;
 
--- FIXME я не понимаю почему не могу сделать так.
-CREATE OR REPLACE FUNCTION check_team() RETURNS boolean
-AS
+CREATE OR REPLACE FUNCTION check_teams(championship_id integer) RETURNS boolean AS
 $$
+DECLARE
+    team_size integer;
+    cur_team  team%rowtype;
 BEGIN
---     IF COUNT(SELECT * FROM team WHERE team.team_id = mentor_team.team_id) > 2 THEN
---         RAISE EXCEPTION 'team can not have more than two mentors';
---     END IF;
---     IF COUNT(SELECT * FROM participant WHERE team.team_id = participant.team_id) < 2 THEN
---         RAISE EXCEPTION 'team can not have less than 2 participants';
---     END IF;
---     IF COUNT(SELECT * FROM participant WHERE team.team_id = participant.team_id) > 5 THEN
---         RAISE EXCEPTION 'team can not have More than 5 participants';
---     END IF;
+    IF ((SELECT COUNT(*)
+         FROM team
+                  JOIN mentor_team ON (team.team_id = mentor_team.team_id)) > 2) THEN
+        RAISE EXCEPTION 'Team can not have more than two mentors';
+    END IF;
+
+    FOR cur_team IN (SELECT * FROM team WHERE team.championship_id = check_teams.championship_id)
+    LOOP
+        SELECT COUNT(*) FROM participant WHERE team_id = cur_team.team_id INTO team_size;
+
+        IF (team_size < 2) THEN
+            RAISE EXCEPTION 'Team can not have less than 2 participants';
+        END IF;
+
+        IF (team_size > 5) THEN
+            RAISE EXCEPTION 'Team can not have More than 5 participants';
+        END IF;
+
+        IF ((SELECT team_id FROM participant WHERE person_id = cur_team.leader_id
+            AND participant.championship_id = cur_team.championship_id) != cur_team.team_id) THEN
+            RAISE EXCEPTION 'Leader should be from this team';
+        END IF;
+    END LOOP;
     RETURN true;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION check_project(champ_id integer) RETURNS boolean
-AS
+CREATE OR REPLACE FUNCTION check_cases(championship_id integer) RETURNS boolean AS
 $$
 BEGIN
-    IF EXISTS((SELECT project_id
-               FROM project_case
-                        INNER JOIN "case" ON project_case.case_id = "case".case_id
-               WHERE complexity <= 10)
-              INTERSECT
-              (SELECT project_id
-               FROM project
-                        INNER JOIN team ON team.team_id = project.team_id
-               WHERE team.championship_id = champ_id)) THEN
-        RETURN true;
+    IF NOT EXISTS(SELECT case_id
+               FROM championship_case
+               WHERE championship_case.championship_id = check_cases.championship_id) THEN
+        RAISE EXCEPTION 'Championship should contains at least one platform';
     END IF;
+
+    RETURN true;
 END;
 $$ LANGUAGE plpgSQL;
 
-CREATE OR REPLACE FUNCTION start_championship(champ_id integer) RETURNS VOID
-AS
+CREATE OR REPLACE FUNCTION check_projects(championship_id integer) RETURNS boolean AS
+$$
+DECLARE
+    cur_project project%rowtype;
+    cur_case "case"%rowtype;
+BEGIN
+    IF NOT EXISTS(SELECT project_id FROM project
+                        INNER JOIN team ON team.team_id = project.team_id
+               WHERE team.championship_id = check_projects.championship_id) THEN
+        RAISE EXCEPTION 'Championship should contains at least one project';
+    END IF;
+
+    FOR cur_project IN
+        (SELECT * FROM project WHERE (
+                SELECT team.championship_id FROM team WHERE team.team_id = project.team_id
+            ) = check_projects.championship_id)
+    LOOP
+        IF NOT EXISTS(SELECT * FROM "case" WHERE EXISTS(SELECT * FROM project_case
+                WHERE "case".case_id = project_case.case_id AND cur_project.project_id = project_case.project_id)) THEN
+            RAISE EXCEPTION 'Project should contains at least one case';
+        END IF;
+
+        FOR cur_case IN
+            (SELECT * FROM "case" WHERE EXISTS(SELECT * FROM project_case
+                WHERE "case".case_id = project_case.case_id AND cur_project.project_id = project_case.project_id))
+        LOOP
+            IF NOT EXISTS(SELECT * FROM championship_case WHERE case_id = cur_case.case_id
+                AND championship_case.championship_id = check_projects.championship_id) THEN
+                RAISE EXCEPTION 'This case cant be used in that championship';
+            END IF;
+        END LOOP;
+    END LOOP;
+
+    RETURN true;
+END;
+$$ LANGUAGE plpgSQL;
+
+CREATE OR REPLACE FUNCTION check_platforms(championship_id integer) RETURNS boolean AS
 $$
 BEGIN
-    IF (EXISTS(SELECT judge.judge_team_id
-               FROM judge_team
-                        JOIN judge on judge_team.judge_team_id = judge.judge_team_id
-               WHERE judge.championship_id = champ_id) AND
-        EXISTS(SELECT leader_id
-               FROM team
-                        JOIN participant on team.team_id = participant.team_id
-               WHERE participant.championship_id = champ_id) AND
-        EXISTS(SELECT platform_id
+    IF NOT EXISTS(SELECT platform_id
                FROM championship_platform
-               WHERE championship_platform.championship_id = champ_id) AND
-        check_team() = true AND
-        check_project(champ_id) = true)
-        --      FIXME: Очень странные проверки, их надо вынести в одельные методы.
---       И отдельно проверять каждую таблицу. Надо написать проверку на пересечение перформансев.
---       У судейских бригад и команд.
+               WHERE championship_platform.championship_id = check_platforms.championship_id) THEN
+        RAISE EXCEPTION 'Championship should contains at least one platform';
+    END IF;
+
+    RETURN true;
+END;
+$$ LANGUAGE plpgSQL;
+
+CREATE OR REPLACE FUNCTION check_judge_teams(championship_id integer) RETURNS boolean AS
+$$
+DECLARE
+    cur_judge_team judge_team%rowtype;
+BEGIN
+    IF NOT EXISTS(SELECT judge.judge_team_id FROM judge_team
+                    JOIN judge ON judge_team.judge_team_id = judge.judge_team_id
+                    WHERE judge.championship_id = check_judge_teams.championship_id) THEN
+        RAISE EXCEPTION 'Championship should contains at least one platform';
+    END IF;
+
+    FOR cur_judge_team IN
+        (SELECT * FROM judge_team
+        WHERE EXISTS(SELECT COUNT(*) FROM judge WHERE judge.judge_team_id = judge_team.judge_team_id))
+    LOOP
+        IF ((SELECT COUNT(*) FROM judge WHERE judge.judge_team_id = cur_judge_team.judge_team_id) != 3) THEN
+            RAISE EXCEPTION 'Judge teams should contains 3 judges.';
+        END IF;
+    END LOOP;
+
+    RETURN true;
+END;
+$$ LANGUAGE plpgSQL;
+
+CREATE OR REPLACE FUNCTION check_performances(championship_id integer) RETURNS boolean AS
+$$
+BEGIN
+--     TODO:
+END;
+$$ LANGUAGE plpgSQL;
+
+CREATE OR REPLACE FUNCTION start_championship(championship_id integer) RETURNS VOID AS
+$$
+BEGIN
+    IF (check_judge_teams(championship_id) AND
+        check_platforms(championship_id) AND
+        check_teams(championship_id) AND
+        check_cases(championship_id) AND
+        check_projects(championship_id) AND
+        check_performances(championship_id))
     THEN
         UPDATE championship
         SET begin_date = now()
-        WHERE championship_id = champ_id;
+        WHERE championship_id = start_championship.championship_id;
     END IF;
-    --FIXME: don't know how "performance_time" can influence the process of starting
 END;
 $$ LANGUAGE plpgSQL;
 
-CREATE OR REPLACE FUNCTION end_championship(championship_id integer) RETURNS VOID
-AS
+CREATE OR REPLACE FUNCTION end_championship(championship_id integer) RETURNS VOID AS
 $$
 BEGIN
     -- TODO: 1) check that max performance time less than now and all performances are rated
@@ -380,25 +426,22 @@ END;
 $$ LANGUAGE plpgSQL;
 
 CREATE OR REPLACE FUNCTION get_results(championship_id integer)
-    RETURNS TABLE
-            (
-                team_id       integer,
-                team_name     text,
-                final_score   integer,
-                place         integer,
-                special_award text
-            )
-AS
+    RETURNS TABLE(
+                     team_id       integer,
+                     team_name     text,
+                     final_score   integer,
+                     place         integer,
+                     special_award text
+                 ) AS
 $$
 BEGIN
-    -- TODO: I still need to understand do we need this function
+    -- TODO
 END;
 $$ LANGUAGE plpgSQL;
 
 
--- Checks
-CREATE OR REPLACE FUNCTION check_person_contact_info() RETURNS trigger
-AS
+-- Checkers for triggers
+CREATE OR REPLACE FUNCTION check_person_contact_info() RETURNS trigger AS
 $checkPersonContactInfo$
 BEGIN
     IF NOT EXISTS(SELECT NEW.person_id FROM email WHERE NEW.person_id = email.person_id) THEN
@@ -417,39 +460,48 @@ BEGIN
     IF age(NEW.person_id) > 27 THEN
         RAISE EXCEPTION 'participant should be under 27';
     END IF;
+
     IF EXISTS(SELECT *
               FROM mentor
               WHERE NEW.person_id = mentor.person_id
                 AND NEW.championship_id = mentor.championship_id) THEN
         RAISE EXCEPTION 'participant can not be a mentor in the same championship';
     END IF;
+
     IF EXISTS(SELECT *
               FROM judge
               WHERE NEW.person_id = judge.person_id
                 AND NEW.championship_id = judge.championship_id) THEN
         RAISE EXCEPTION 'participant can not be a judge in the same championship';
     END IF;
+
+    IF NEW.team_id IS NOT NULL AND NEW.championship_id != ALL
+        (SELECT participant.championship_id FROM participant WHERE team_id = NEW.team_id) THEN
+        RAISE EXCEPTION 'Participants in one team should be from one championship';
+    END IF;
 END;
 $checkParticipant$ LANGUAGE plpgsql;
 
-CREATE FUNCTION check_mentor() RETURNS trigger
-AS
+CREATE FUNCTION check_mentor() RETURNS trigger AS
 $checkMentor$
 BEGIN
     IF age(NEW.person_id) < 21 THEN
         RAISE EXCEPTION 'mentor should be older then 21';
     END IF;
+
     IF NOT EXISTS(SELECT NEW.person_id
                   FROM people_publication
                   WHERE NEW.person_id = people_publication.person_id) THEN
         RAISE EXCEPTION 'mentor should have one or more publications';
     END IF;
+
     IF EXISTS(SELECT *
               FROM judge
               WHERE NEW.person_id = judge.person_id
                 AND NEW.championship_id = judge.championship_id) THEN
         RAISE EXCEPTION 'mentor can not be a jude in the same championship';
     END IF;
+
     IF EXISTS(SELECT *
               FROM participant
               WHERE NEW.person_id = participant.person_id
@@ -459,35 +511,41 @@ BEGIN
 END;
 $checkMentor$ LANGUAGE plpgsql;
 
-CREATE FUNCTION check_judge() RETURNS trigger
-AS
+CREATE FUNCTION check_judge() RETURNS trigger AS
 $checkJudge$
 BEGIN
     IF age(NEW.person_id) < 27 THEN
         RAISE EXCEPTION 'jude should be older then 27';
     END IF;
+
     IF NOT EXISTS(SELECT NEW.person_id
                   FROM people_publication
                   WHERE NEW.person_id = people_publication.person_id) THEN
-        RAISE EXCEPTION 'jude should have one or more publications';
+        RAISE EXCEPTION 'Judge should have one or more publications';
     END IF;
+
     IF EXISTS(SELECT *
               FROM mentor
               WHERE NEW.person_id = mentor.person_id
                 AND NEW.championship_id = mentor.championship_id) THEN
-        RAISE EXCEPTION 'jude can not be a mentor in the same championship';
+        RAISE EXCEPTION 'Judge can not be a mentor in the same championship';
     END IF;
+
     IF EXISTS(SELECT *
               FROM participant
               WHERE NEW.person_id = participant.person_id
                 AND NEW.championship_id = participant.championship_id) THEN
-        RAISE EXCEPTION 'jude can not be a participant in the same championship';
+        RAISE EXCEPTION 'Judge can not be a participant in the same championship';
+    END IF;
+
+    IF NEW.judge_team_id IS NOT NULL AND NEW.championship_id != ALL
+        (SELECT judge.championship_id FROM judge WHERE judge_team_id = NEW.judge_team_id) THEN
+        RAISE EXCEPTION 'Judges in one judge team should be from one championship';
     END IF;
 END;
 $checkJudge$ LANGUAGE plpgsql;
 
 -- Triggers
-
 CREATE TRIGGER checkParticipant
     BEFORE INSERT OR UPDATE
     ON participant
