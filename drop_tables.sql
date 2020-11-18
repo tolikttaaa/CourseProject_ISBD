@@ -25,9 +25,9 @@ DROP FUNCTION IF EXISTS insert_judge(character[], character[], date, integer, te
 DROP FUNCTION IF EXISTS insert_team(text, integer[], integer, integer) CASCADE;
 DROP FUNCTION IF EXISTS insert_team(text, integer[], integer[], integer, integer) CASCADE;
 DROP FUNCTION IF EXISTS add_mentor_to_team(integer, integer, integer) CASCADE;
-DROP FUNCTION IF EXISTS person_contact_info_check() CASCADE;
-DROP FUNCTION IF EXISTS participant_check() CASCADE;
-DROP FUNCTION IF EXISTS mentor_check() CASCADE;
-DROP FUNCTION IF EXISTS judge_check() CASCADE;
-DROP FUNCTION IF EXISTS team_check() CASCADE;
+DROP FUNCTION IF EXISTS check_person_contact_info() CASCADE;
+DROP FUNCTION IF EXISTS check_participant() CASCADE;
+DROP FUNCTION IF EXISTS check_mentor() CASCADE;
+DROP FUNCTION IF EXISTS check_judge() CASCADE;
+DROP FUNCTION IF EXISTS check_team() CASCADE;
 DROP FUNCTION IF EXISTS check_project(integer) CASCADE;

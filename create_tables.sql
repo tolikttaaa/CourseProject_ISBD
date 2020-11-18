@@ -174,7 +174,8 @@ CREATE OR REPLACE FUNCTION insert_participant(first_name character[20],
                                               last_name character[20],
                                               birth_date date,
                                               championship_id integer) RETURNS integer
-AS $$
+AS
+$$
 DECLARE
     person integer;
 
@@ -199,7 +200,8 @@ CREATE OR REPLACE FUNCTION insert_judge(first_name character[20],
                                         birth_date date,
                                         championship_id integer,
                                         work text) RETURNS integer
-AS $$
+AS
+$$
 DECLARE
     person integer;
 
@@ -223,7 +225,8 @@ CREATE OR REPLACE FUNCTION insert_team(name text,
                                        participants integer[],
                                        leader_id integer,
                                        championship_id integer) RETURNS integer
-AS $$
+AS
+$$
 DECLARE
     person      integer;
     team_number integer;
@@ -236,12 +239,12 @@ BEGIN
     SELECT max(team_id) INTO team_number FROM team;
 
     FOREACH person IN ARRAY participants
-    LOOP
-        UPDATE participant
-        SET team_id = team_number
-        WHERE person_id = person
-          AND championship_id = insert_team.championship_id;
-    END LOOP;
+        LOOP
+            UPDATE participant
+            SET team_id = team_number
+            WHERE person_id = person
+              AND championship_id = insert_team.championship_id;
+        END LOOP;
 
     UPDATE team
     SET leader_id = insert_team.leader_id
@@ -255,7 +258,8 @@ $$ LANGUAGE plpgSQL;
 CREATE OR REPLACE FUNCTION add_mentor_to_team(mentor_id integer,
                                               championship_id integer,
                                               team_id integer) RETURNS VOID
-AS $$
+AS
+$$
 BEGIN
     INSERT INTO mentor_team (person_id, championship_id, team_id)
     VALUES (add_mentor_to_team.mentor_id,
@@ -270,7 +274,8 @@ CREATE OR REPLACE FUNCTION insert_team(name text,
                                        mentors integer[],
                                        leader_id integer,
                                        championship_id integer) RETURNS integer
-AS $$
+AS
+$$
 DECLARE
     cur_mentor  integer;
     team_number integer;
@@ -291,7 +296,8 @@ END;
 $$ LANGUAGE plpgSQL;
 
 CREATE OR REPLACE FUNCTION rate_performance(performance_id integer, points real) RETURNS VOID
-AS $$
+AS
+$$
 BEGIN
     UPDATE performance
     SET points = rate_performance.points
@@ -299,52 +305,74 @@ BEGIN
 END;
 $$ LANGUAGE plpgSQL;
 
-CREATE OR REPLACE FUNCTION start_championship(championship_id integer) RETURNS VOID
-AS $$
+-- FIXME я не понимаю почему не могу сделать так.
+CREATE OR REPLACE FUNCTION check_team() RETURNS boolean
+AS
+$$
 BEGIN
-    IF (EXISTS(SELECT judge.judge_team_id
-               FROM judge_team
-                        JOIN judge on judge_team.judge_team_id = judge.judge_team_id
-               WHERE judge.championship_id = start_championship.championship_id) AND
-        EXISTS(SELECT leader_id
-               FROM team
-                        JOIN participant on team.team_id = participant.team_id
-               WHERE participant.championship_id = start_championship.championship_id) AND
-        EXISTS(SELECT platform_id
-               FROM championship_platform
-               WHERE championship_platform.championship_id = start_championship.championship_id))
---      FIXME: Очень странные проверки, их надо вынести в одельные методы.
---       И отдельно проверять каждую таблицу. Надо написать проверку на пересечение перформансев.
---       У судейских бригад и команд.
-    THEN
-        UPDATE championship
-        SET begin_date = now()
-        WHERE championship_id = start_championship.championship_id;
-    END IF;
-    --FIXME: don't know how "performance_time" can influence the process of starting
+--     IF COUNT(SELECT * FROM team WHERE team.team_id = mentor_team.team_id) > 2 THEN
+--         RAISE EXCEPTION 'team can not have more than two mentors';
+--     END IF;
+--     IF COUNT(SELECT * FROM participant WHERE team.team_id = participant.team_id) < 2 THEN
+--         RAISE EXCEPTION 'team can not have less than 2 participants';
+--     END IF;
+--     IF COUNT(SELECT * FROM participant WHERE team.team_id = participant.team_id) > 5 THEN
+--         RAISE EXCEPTION 'team can not have More than 5 participants';
+--     END IF;
+    RETURN true;
 END;
-$$ LANGUAGE plpgSQL;
+$$ LANGUAGE plpgsql;
 
--- TODO: In championship start
 CREATE OR REPLACE FUNCTION check_project(champ_id integer) RETURNS boolean
-AS $$
+AS
+$$
 BEGIN
     IF EXISTS((SELECT project_id
                FROM project_case
-                    INNER JOIN "case" ON project_case.case_id = "case".case_id
+                        INNER JOIN "case" ON project_case.case_id = "case".case_id
                WHERE complexity <= 10)
               INTERSECT
               (SELECT project_id
                FROM project
-                    INNER JOIN team ON team.team_id = project.team_id
+                        INNER JOIN team ON team.team_id = project.team_id
                WHERE team.championship_id = champ_id)) THEN
         RETURN true;
     END IF;
 END;
 $$ LANGUAGE plpgSQL;
 
+CREATE OR REPLACE FUNCTION start_championship(champ_id integer) RETURNS VOID
+AS
+$$
+BEGIN
+    IF (EXISTS(SELECT judge.judge_team_id
+               FROM judge_team
+                        JOIN judge on judge_team.judge_team_id = judge.judge_team_id
+               WHERE judge.championship_id = champ_id) AND
+        EXISTS(SELECT leader_id
+               FROM team
+                        JOIN participant on team.team_id = participant.team_id
+               WHERE participant.championship_id = champ_id) AND
+        EXISTS(SELECT platform_id
+               FROM championship_platform
+               WHERE championship_platform.championship_id = champ_id) AND
+        check_team() = true AND
+        check_project(champ_id) = true)
+        --      FIXME: Очень странные проверки, их надо вынести в одельные методы.
+--       И отдельно проверять каждую таблицу. Надо написать проверку на пересечение перформансев.
+--       У судейских бригад и команд.
+    THEN
+        UPDATE championship
+        SET begin_date = now()
+        WHERE championship_id = champ_id;
+    END IF;
+    --FIXME: don't know how "performance_time" can influence the process of starting
+END;
+$$ LANGUAGE plpgSQL;
+
 CREATE OR REPLACE FUNCTION end_championship(championship_id integer) RETURNS VOID
-AS $$
+AS
+$$
 BEGIN
     -- TODO: 1) check that max performance time less than now and all performances are rated
     --       2) calculate score table
@@ -360,7 +388,8 @@ CREATE OR REPLACE FUNCTION get_results(championship_id integer)
                 place         integer,
                 special_award text
             )
-AS $$
+AS
+$$
 BEGIN
     -- TODO: I still need to understand do we need this function
 END;
@@ -368,8 +397,9 @@ $$ LANGUAGE plpgSQL;
 
 
 -- Checks
-CREATE OR REPLACE FUNCTION person_contact_info_check() RETURNS trigger
-AS $checkPersonContactInfo$
+CREATE OR REPLACE FUNCTION check_person_contact_info() RETURNS trigger
+AS
+$checkPersonContactInfo$
 BEGIN
     IF NOT EXISTS(SELECT NEW.person_id FROM email WHERE NEW.person_id = email.person_id) THEN
         RAISE EXCEPTION 'person should have an email';
@@ -380,24 +410,31 @@ BEGIN
 END;
 $checkPersonContactInfo$ LANGUAGE plpgSQL;
 
-CREATE FUNCTION participant_check() RETURNS trigger
-AS $checkParticipant$
+CREATE FUNCTION check_participant() RETURNS trigger
+AS
+$checkParticipant$
 BEGIN
     IF age(NEW.person_id) > 27 THEN
         RAISE EXCEPTION 'participant should be under 27';
     END IF;
-    IF EXISTS(SELECT NEW.person_id FROM judge WHERE NEW.person_id = judge.person_id) THEN
-        RAISE EXCEPTION 'participant can not be a jude';
+    IF EXISTS(SELECT *
+              FROM mentor
+              WHERE NEW.person_id = mentor.person_id
+                AND NEW.championship_id = mentor.championship_id) THEN
+        RAISE EXCEPTION 'participant can not be a mentor in the same championship';
     END IF;
-    IF EXISTS(SELECT NEW.person_id FROM mentor WHERE NEW.person_id = mentor.person_id) THEN
-        RAISE EXCEPTION 'participant can not be a mentor';
+    IF EXISTS(SELECT *
+              FROM judge
+              WHERE NEW.person_id = judge.person_id
+                AND NEW.championship_id = judge.championship_id) THEN
+        RAISE EXCEPTION 'participant can not be a judge in the same championship';
     END IF;
---     TODO: Добавить проверку на не пересечение с ментором и судьёй.
 END;
 $checkParticipant$ LANGUAGE plpgsql;
 
-CREATE FUNCTION mentor_check() RETURNS trigger
-AS $checkMentor$
+CREATE FUNCTION check_mentor() RETURNS trigger
+AS
+$checkMentor$
 BEGIN
     IF age(NEW.person_id) < 21 THEN
         RAISE EXCEPTION 'mentor should be older then 21';
@@ -407,25 +444,24 @@ BEGIN
                   WHERE NEW.person_id = people_publication.person_id) THEN
         RAISE EXCEPTION 'mentor should have one or more publications';
     END IF;
---     FIXME: Слишком сложная проверка.
-    IF EXISTS((SELECT * FROM judge WHERE NEW.person_id = judge.person_id AND NEW.championship_id = judge.championship_id)) THEN
+    IF EXISTS(SELECT *
+              FROM judge
+              WHERE NEW.person_id = judge.person_id
+                AND NEW.championship_id = judge.championship_id) THEN
         RAISE EXCEPTION 'mentor can not be a jude in the same championship';
     END IF;
---     FIXME: Слишком сложная проверка.
-    IF EXISTS((SELECT championship_id
-               FROM participant
-               WHERE NEW.person_id = participant.person_id)
-              INTERSECT
-              (SELECT championship_id
-               FROM mentor
-               WHERE NEW.person_id = mentor.person_id)) THEN
+    IF EXISTS(SELECT *
+              FROM participant
+              WHERE NEW.person_id = participant.person_id
+                AND NEW.championship_id = participant.championship_id) THEN
         RAISE EXCEPTION 'mentor can not be a participant in the same championship';
     END IF;
 END;
 $checkMentor$ LANGUAGE plpgsql;
 
-CREATE FUNCTION judge_check() RETURNS trigger
-AS $checkJudge$
+CREATE FUNCTION check_judge() RETURNS trigger
+AS
+$checkJudge$
 BEGIN
     IF age(NEW.person_id) < 27 THEN
         RAISE EXCEPTION 'jude should be older then 27';
@@ -435,33 +471,20 @@ BEGIN
                   WHERE NEW.person_id = people_publication.person_id) THEN
         RAISE EXCEPTION 'jude should have one or more publications';
     END IF;
-    --     FIXME: Слишком сложная проверка.
-    IF EXISTS((SELECT championship_id FROM mentor WHERE NEW.person_id = mentor.person_id)
-              INTERSECT
-              (SELECT championship_id
-               FROM judge
-               WHERE NEW.person_id = judge.person_id)) THEN
+    IF EXISTS(SELECT *
+              FROM mentor
+              WHERE NEW.person_id = mentor.person_id
+                AND NEW.championship_id = mentor.championship_id) THEN
         RAISE EXCEPTION 'jude can not be a mentor in the same championship';
     END IF;
-    --     FIXME: Слишком сложная проверка.
-    IF EXISTS((SELECT championship_id FROM participant WHERE NEW.person_id = participant.person_id)
-              INTERSECT
-              (SELECT championship_id
-               FROM judge
-               WHERE NEW.person_id = judge.person_id)) THEN
+    IF EXISTS(SELECT *
+              FROM participant
+              WHERE NEW.person_id = participant.person_id
+                AND NEW.championship_id = participant.championship_id) THEN
         RAISE EXCEPTION 'jude can not be a participant in the same championship';
     END IF;
 END;
 $checkJudge$ LANGUAGE plpgsql;
-
--- TODO: зачем это вообще. В моём понимание, эта проверка должная быть в начале соревнований.
---  И не в качестве триггера, а в качестве обычной функции.
-CREATE FUNCTION check_team() RETURNS BOOLEAN
-AS $checkTeam$
-BEGIN
-
-END;
-$checkTeam$ LANGUAGE plpgsql;
 
 -- Triggers
 
@@ -469,22 +492,22 @@ CREATE TRIGGER checkParticipant
     BEFORE INSERT OR UPDATE
     ON participant
     FOR EACH ROW
-EXECUTE PROCEDURE participant_check();
+EXECUTE PROCEDURE check_participant();
 
 CREATE TRIGGER checkMentor
     BEFORE INSERT OR UPDATE
     ON mentor
     FOR EACH ROW
-EXECUTE PROCEDURE mentor_check();
+EXECUTE PROCEDURE check_mentor();
 
 CREATE TRIGGER checkJudge
     BEFORE INSERT OR UPDATE
     ON judge
     FOR EACH ROW
-EXECUTE PROCEDURE judge_check();
+EXECUTE PROCEDURE check_judge();
 
 CREATE TRIGGER checkPersonContactInfo
     BEFORE INSERT OR UPDATE
     ON people
     FOR EACH ROW
-EXECUTE PROCEDURE person_contact_info_check();
+EXECUTE PROCEDURE check_person_contact_info();
