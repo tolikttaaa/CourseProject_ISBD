@@ -117,7 +117,7 @@ SELECT insert_team('ten','{34,33}',34,1);
 SELECT insert_team('help','{35,36,37,38}',35,2);
 SELECT insert_team('to','{39,40,13}',39,2);
 SELECT insert_team('my','{41,42,43}',41,2);
-SELECT insert_team('imagination','{50,49,48,47}',49,2);
+SELECT insert_team('imagination','{50,49,48,47}',49,3);
 
 --inserting mentor
 INSERT INTO mentor (person_id, championship_id) VALUES (5,1);
@@ -131,7 +131,6 @@ SELECT add_mentor_to_team(5,1,1);
 SELECT add_mentor_to_team(6,1,2);
 SELECT add_mentor_to_team(8,2,8);
 SELECT add_mentor_to_team(9,2,9);
-SELECT add_mentor_to_team(7,2,10);
 
 --creating projects
 SELECT insert_project('project1',1,'{1,2}','the best project ever');
@@ -145,17 +144,46 @@ SELECT insert_project('project8',8,'{3,5,8,9,10}','the best project ever');
 SELECT insert_project('project9',9,'{1,3,5}','the best project ever');
 SELECT insert_project('project10',10,'{1,2,7}','the best project ever');
 
---fixme creating team with a mentor (оно не работает)
--- конечно это не будет работать, так как эти менторы не созданы, а участники из другого чемпионата
--- SELECT insert_team_with_mentor('dreamTeam','{13,46,45,44}','{1,2}',13,3);
+--fixme нет, он не может припихнуть ментору id созданной команды
+-- ERROR: query "SELECT insert_team(name, participants, leader_id, championship_id) INTO team_number" is not a SELECT
+
+--SELECT insert_team_with_mentor('dreamTeam','{13,35,36,37}','{5}',13,1);
 
 --inserting judges
 INSERT INTO judge (person_id, championship_id, work) VALUES (7,1,'LicuidCo');
 INSERT INTO judge (person_id, championship_id, work) VALUES (8,1,'JobCo');
-INSERT INTO judge (person_id, championship_id, work) VALUES (9,1,'CodeCo');
+INSERT INTO judge (person_id, championship_id, work) VALUES (9,1,'CodeCo');;
+INSERT INTO judge (person_id, championship_id, work) VALUES (7,3,'LicuidCo');
+INSERT INTO judge (person_id, championship_id, work) VALUES (8,3,'JobCo');
+INSERT INTO judge (person_id, championship_id, work) VALUES (9,3,'CodeCo');
+
+--adding cases
+SELECT add_case_to_championship(1,1);
+SELECT add_case_to_championship(1,2);
+SELECT add_case_to_championship(1,3);
+SELECT add_case_to_championship(1,4);
+SELECT add_case_to_championship(1,5);
+SELECT add_case_to_championship(1,6);
+SELECT add_case_to_championship(1,7);
+SELECT add_case_to_championship(1,8);
+SELECT add_case_to_championship(1,9);
+SELECT add_case_to_championship(1,10);
+SELECT add_case_to_championship(1,11);
+SELECT add_case_to_championship(3,1);
+SELECT add_case_to_championship(3,2);
+SELECT add_case_to_championship(3,3);
+SELECT add_case_to_championship(3,4);
+SELECT add_case_to_championship(3,5);
+SELECT add_case_to_championship(3,6);
+SELECT add_case_to_championship(3,7);
+SELECT add_case_to_championship(3,8);
+SELECT add_case_to_championship(3,9);
+SELECT add_case_to_championship(3,10);
+SELECT add_case_to_championship(3,11);
 
 --inserting judges
 SELECT insert_judge_team('{7,8,9}',1);
+SELECT insert_judge_team('{7,8,9}',3);
 
 
 --inserting performances (работает)
@@ -165,19 +193,19 @@ INSERT INTO performance (project_id, performance_time, judge_team_id, platform_i
 INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (4,'2020-03-13 10:30:00',1,1);
 INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (5,'2020-03-14 10:30:00',1,1);
 INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (6,'2020-03-15 10:30:00',1,1);
-INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (7,'2020-03-16 10:30:00',1,1);
-INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (8,'2020-03-17 10:30:00',1,1);
-INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (9,'2020-03-18 10:30:00',1,1);
-INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (10,'2020-03-26 10:30:00',1,1);
+INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (7,'2020-03-16 10:30:00',1,2);
+INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (8,'2020-03-17 10:30:00',1,2);
+INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (9,'2020-03-18 10:30:00',1,2);
 
+--starting championship
+SELECT start_championship(1);
 --rating performances
-SELECT rate_performance(1,9.5);
-SELECT rate_performance(2,10);
-SELECT rate_performance(3,12);
-SELECT rate_performance(4,34);
+SELECT rate_performance(1,2);
+SELECT rate_performance(2,2);
+SELECT rate_performance(3,0.01);
+SELECT rate_performance(4,4);
 SELECT rate_performance(5,5);
-SELECT rate_performance(6,11);
-SELECT rate_performance(7,35);
-SELECT rate_performance(8,2);
-SELECT rate_performance(9,1);
-SELECT rate_performance(10,0.01);
+SELECT rate_performance(6,1);
+
+--ending championships
+SELECT end_championship(1);

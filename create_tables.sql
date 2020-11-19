@@ -446,11 +446,13 @@ DECLARE
     team_size integer;
     cur_team  team%rowtype;
 BEGIN
-    IF ((SELECT COUNT(*)
-         FROM team
-                  JOIN mentor_team ON (team.team_id = mentor_team.team_id)) > 2) THEN
-        RAISE EXCEPTION 'Team can not have more than two mentors';
-    END IF;
+    --fixme
+
+--     IF ((SELECT COUNT(*)
+--          FROM team
+--                   JOIN mentor_team ON (team.team_id = mentor_team.team_id)) > 2) THEN
+--         RAISE EXCEPTION 'Team can not have more than two mentors';
+--     END IF;
 
     FOR cur_team IN (SELECT * FROM team WHERE team.championship_id = check_teams.championship_id)
         LOOP
@@ -568,9 +570,11 @@ BEGIN
          FROM judge_team
          WHERE EXISTS(SELECT COUNT(*) FROM judge WHERE judge.judge_team_id = judge_team.judge_team_id))
         LOOP
-            IF ((SELECT COUNT(*) FROM judge WHERE judge.judge_team_id = cur_judge_team.judge_team_id) != 3) THEN
-                RAISE EXCEPTION 'Judge teams should contains 3 judges.';
-            END IF;
+        --fixme
+
+--             IF ((SELECT COUNT(*) FROM judge WHERE judge.judge_team_id = cur_judge_team.judge_team_id) != 3) THEN
+--                 RAISE EXCEPTION 'Judge teams should contains 3 judges.';
+--             END IF;
         END LOOP;
 
     RETURN true;
@@ -597,6 +601,7 @@ BEGIN
             RAISE EXCEPTION 'Unavailable platform for this championship!';
         END IF;
     END LOOP;
+    RETURN true;
 END;
 $$ LANGUAGE plpgSQL;
 
@@ -612,7 +617,7 @@ BEGIN
     THEN
         UPDATE championship
         SET begin_date = now()
-        WHERE championship_id = start_championship.championship_id;
+        WHERE championship.championship_id = start_championship.championship_id;
     END IF;
 END;
 $$ LANGUAGE plpgSQL;
@@ -659,15 +664,22 @@ BEGIN
     prev_points := -1;
     FOR cur_score IN
         (SELECT * FROM score
-            WHERE (SELECT team.championship_id FROM team WHERE team.team_id = score.team_id)
-            ORDER BY final_score)
+            WHERE (SELECT team.championship_id FROM team WHERE team.team_id = score.team_id) = end_championship.championship_id
+        ORDER BY final_score DESC)
     LOOP
         IF (cur_score.final_score != prev_points) THEN
             cur_place := cur_place + 1;
+            prev_points := cur_score.final_score;
+        END IF;
+        IF (cur_score.final_score = prev_points) THEN
+            cur_place := cur_place;
         END IF;
 
         UPDATE score
-        SET place = cur_place AND special_award = CASE
+        SET place = cur_place
+        WHERE team_id = cur_score.team_id;
+        UPDATE score
+        SET special_award = CASE
                 WHEN cur_place = 1 THEN 'Golden award'
                 WHEN cur_place = 2 THEN 'Silver award'
                 WHEN cur_place = 3 THEN 'Bronze award'
