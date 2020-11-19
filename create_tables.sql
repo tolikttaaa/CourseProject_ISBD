@@ -109,7 +109,7 @@ CREATE TABLE performance
     project_id       integer REFERENCES project (project_id) ON DELETE CASCADE,
     performance_time timestamp,
     judge_team_id    integer REFERENCES judge_team (judge_team_id) ON DELETE SET NULL,
-    platform_id      integer REFERENCES platform (platform_id) ON DELETE CASCADE,
+    platform_id      integer REFERENCES platform (platform_id) ON DELETE SET NULL,
     points           real DEFAULT NULL
 );
 
@@ -362,25 +362,24 @@ BEGIN
 END;
 $$ LANGUAGE plpgSQL;
 
-
 CREATE OR REPLACE FUNCTION insert_judge_team(judges integer[],
                                              championship_id integer) RETURNS VOID AS
 $$
 DECLARE
+    judge_team_number integer;
     cur_judge integer;
 BEGIN
-    --fixme оно не работало, я мзменила строку 373, но это не помогло (ломается в Update)
-    INSERT INTO judge_team (judge_team_id) VALUES (CURRVAL('judge_team_judge_team_id_seq'));
+    SELECT NEXTVAL('judge_team_judge_team_id_seq') INTO judge_team_number;
+    INSERT INTO judge_team (judge_team_id) VALUES (judge_team_number);
 
     FOREACH cur_judge IN ARRAY judges
         LOOP
-             UPDATE judge
-             SET judge.judge_team_id = CURRVAL('judge_team_judge_team_id_seq')
-             WHERE judge.person_id = cur_judge AND judge.championship_id = insert_judge_team.championship_id;
+            UPDATE judge
+            SET judge_team_id = judge_team_number
+            WHERE person_id = cur_judge AND judge.championship_id = insert_judge_team.championship_id;
         END LOOP;
 END;
 $$ LANGUAGE plpgSQL;
-
 
 CREATE OR REPLACE FUNCTION insert_publication(name text, description text) RETURNS integer AS
 $$
@@ -420,6 +419,21 @@ $$ LANGUAGE plpgSQL;
 CREATE OR REPLACE FUNCTION rate_performance(performance_id integer, points real) RETURNS VOID AS
 $$
 BEGIN
+    IF (SELECT championship.begin_date FROM performance
+        JOIN project ON performance.project_id = project.project_id
+        JOIN team ON team.team_id = project.team_id
+        JOIN championship ON championship.championship_id = team.championship_id
+        WHERE performance.performance_id = rate_performance.performance_id) IS NULL THEN
+        RAISE EXCEPTION 'Championship is not started!';
+    END IF;
+
+    IF points > (SELECT SUM(complexity) FROM "case"
+        JOIN project_case ON "case".case_id = project_case.case_id
+        JOIN performance ON performance.performance_id = rate_performance.performance_id
+                AND project_case.project_id = performance.project_id) THEN
+        RAISE EXCEPTION 'Too much points for this performance';
+    END IF;
+
     UPDATE performance
     SET points = rate_performance.points
     WHERE performance.performance_id = rate_performance.performance_id;
@@ -565,8 +579,24 @@ $$ LANGUAGE plpgSQL;
 
 CREATE OR REPLACE FUNCTION check_performances(championship_id integer) RETURNS boolean AS
 $$
+DECLARE
+    cur_performance performance%rowtype;
 BEGIN
-    --     TODO:
+    FOR cur_performance IN
+        (SELECT * FROM performance WHERE
+            (SELECT team.championship_id FROM team
+                JOIN project ON team.team_id = project.team_id AND project.project_id = performance.project_id)
+                = check_performances.championship_id)
+    LOOP
+        IF championship_id != ANY (SELECT judge.championship_id FROM judge WHERE judge_team_id = cur_performance.judge_team_id) THEN
+            RAISE EXCEPTION 'Judge team should be from the same championship';
+        END IF;
+
+        IF NOT EXISTS(SELECT * FROM championship_platform WHERE championship_platform.championship_id = check_performances.championship_id
+                                                            AND platform_id = cur_performance.platform_id) THEN
+            RAISE EXCEPTION 'Unavailable platform for this championship!';
+        END IF;
+    END LOOP;
 END;
 $$ LANGUAGE plpgSQL;
 
@@ -589,9 +619,62 @@ $$ LANGUAGE plpgSQL;
 
 CREATE OR REPLACE FUNCTION end_championship(championship_id integer) RETURNS VOID AS
 $$
+DECLARE
+    score_value real;
+    cur_project project%rowtype;
+    cur_team team%rowtype;
+    cur_score score%rowtype;
+    cur_place integer;
+    prev_points real;
 BEGIN
-    -- TODO: 1) check that max performance time less than now and all performances are rated
-    --       2) calculate score table
+    IF (SELECT MAX(performance_time) FROM performance
+        JOIN project ON project.project_id = performance.project_id
+        JOIN team ON project.team_id = team.team_id
+        WHERE team.championship_id = end_championship.championship_id) > NOW() THEN
+        RAISE EXCEPTION 'Some performances are not started yet!';
+    END IF;
+
+    IF EXISTS(SELECT * FROM performance
+        JOIN project ON project.project_id = performance.project_id
+        JOIN team ON project.team_id = team.team_id
+        WHERE team.championship_id = end_championship.championship_id AND points IS NULL) THEN
+        RAISE EXCEPTION 'Some performances are not rated!';
+    END IF;
+
+    FOR cur_team IN
+        (SELECT * FROM team WHERE team.championship_id = end_championship.championship_id)
+    LOOP
+        score_value := 0;
+
+        FOR cur_project IN
+            (SELECT * FROM project WHERE team_id = cur_team.team_id)
+        LOOP
+            score_value := score_value + (SELECT AVG(points) FROM performance WHERE project_id = cur_project.project_id);
+        END LOOP;
+
+        INSERT INTO score (team_id, final_score) VALUES (cur_team.team_id, score_value);
+    END LOOP;
+
+    cur_place := 0;
+    prev_points := -1;
+    FOR cur_score IN
+        (SELECT * FROM score
+            WHERE (SELECT team.championship_id FROM team WHERE team.team_id = score.team_id)
+            ORDER BY final_score)
+    LOOP
+        IF (cur_score.final_score != prev_points) THEN
+            cur_place := cur_place + 1;
+        END IF;
+
+        UPDATE score
+        SET place = cur_place AND special_award = CASE
+                WHEN cur_place = 1 THEN 'Golden award'
+                WHEN cur_place = 2 THEN 'Silver award'
+                WHEN cur_place = 3 THEN 'Bronze award'
+                ELSE 'Participant'
+            END
+        WHERE team_id = cur_score.team_id;
+    END LOOP;
 END;
 $$ LANGUAGE plpgSQL;
 
@@ -612,7 +695,6 @@ BEGIN
                  ORDER BY place;
 END;
 $$ LANGUAGE plpgSQL;
-
 
 -- Checkers for triggers
 CREATE OR REPLACE FUNCTION check_person_contact_info() RETURNS trigger AS
@@ -648,7 +730,7 @@ BEGIN
                 AND NEW.championship_id = judge.championship_id) THEN
         RAISE EXCEPTION 'participant can not be a judge in the same championship';
     END IF;
---FIXME эта проверка не работает (она не дает вставить точно верный результат)
+
     IF NEW.team_id IS NOT NULL AND NEW.championship_id != ANY
                                    (SELECT participant.championship_id
                                     FROM participant
@@ -658,6 +740,17 @@ BEGIN
     RETURN NEW;
 END;
 $checkParticipant$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION check_participant_only_update() RETURNS trigger AS
+$checkParticipantUpdate$
+BEGIN
+    IF NEW.team_id IS NULL OR NEW.team_id != OLD.team_id THEN
+        DELETE FROM team
+        WHERE team_id = OLD.team_id;
+    END IF;
+    RETURN NEW;
+END;
+$checkParticipantUpdate$ LANGUAGE plpgsql;
 
 CREATE FUNCTION check_mentor() RETURNS trigger AS
 $checkMentor$
@@ -715,17 +808,28 @@ BEGIN
                 AND NEW.championship_id = participant.championship_id) THEN
         RAISE EXCEPTION 'Judge can not be a participant in the same championship';
     END IF;
---fixme оно не дает вставлять верные данные
 
---     IF NEW.judge_team_id IS NOT NULL AND NEW.championship_id != ALL
---                                          (SELECT judge.championship_id
---                                           FROM judge
---                                           WHERE judge_team_id = NEW.judge_team_id) THEN
---         RAISE EXCEPTION 'Judges in one judge team should be from one championship';
---     END IF;
+    IF NEW.judge_team_id IS NOT NULL AND NEW.championship_id != ANY
+                                         (SELECT judge.championship_id
+                                          FROM judge
+                                          WHERE judge_team_id = NEW.judge_team_id) THEN
+        RAISE EXCEPTION 'Judges in one judge team should be from one championship';
+    END IF;
+
     RETURN NEW;
 END;
 $checkJudge$ LANGUAGE plpgsql;
+
+CREATE FUNCTION check_judge_only_update() RETURNS trigger AS
+$checkJudgeUpdate$
+BEGIN
+    IF NEW.judge_team_id IS NULL OR NEW.judge_team_id != OLD.judge_team_id THEN
+        DELETE FROM judge_team
+        WHERE judge_team_id = OLD.judge_team_id;
+    END IF;
+    RETURN NEW;
+END;
+$checkJudgeUpdate$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION check_mentor_team_dependency() RETURNS trigger AS
 $checkMentorTeamDependency$
@@ -737,12 +841,32 @@ RETURN NEW;
 END;
 $checkMentorTeamDependency$ LANGUAGE plpgSQL;
 
+CREATE OR REPLACE FUNCTION check_performance() RETURNS trigger AS
+$checkPerformance$
+DECLARE
+    championship_number integer;
+BEGIN
+    SELECT team.championship_id INTO championship_number FROM project JOIN team ON team.team_id = project.team_id WHERE project_id = NEW.project_id;
+
+    IF NOT EXISTS(SELECT * FROM championship_platform WHERE platform_id = NEW.platform_id AND championship_id = championship_number) THEN
+        RAISE EXCEPTION 'Platform should be available for this championship.';
+    END IF;
+    RETURN NEW;
+END;
+$checkPerformance$ LANGUAGE plpgSQL;
+
 -- Triggers
 CREATE TRIGGER checkParticipant
     BEFORE INSERT OR UPDATE
     ON participant
     FOR EACH ROW
 EXECUTE PROCEDURE check_participant();
+
+CREATE TRIGGER checkParticipantUpdate
+    AFTER UPDATE
+    ON participant
+    FOR EACH ROW
+EXECUTE PROCEDURE check_participant_only_update();
 
 CREATE TRIGGER checkMentor
     BEFORE INSERT OR UPDATE
@@ -755,6 +879,12 @@ CREATE TRIGGER checkJudge
     ON judge
     FOR EACH ROW
 EXECUTE PROCEDURE check_judge();
+
+CREATE TRIGGER checkJudgeUpdate
+    AFTER UPDATE
+    ON judge
+    FOR EACH ROW
+EXECUTE PROCEDURE check_judge_only_update();
 
 CREATE TRIGGER checkParticipantContactInfo
     BEFORE INSERT OR UPDATE
@@ -779,6 +909,12 @@ CREATE TRIGGER checkMentorTeamDependency
     ON mentor_team
     FOR EACH ROW
 EXECUTE PROCEDURE check_mentor_team_dependency();
+
+CREATE TRIGGER checkPerformance
+    BEFORE INSERT OR UPDATE
+    ON performance
+    FOR EACH ROW
+EXECUTE PROCEDURE check_performance();
 
 
 

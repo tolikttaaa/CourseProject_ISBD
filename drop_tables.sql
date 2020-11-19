@@ -23,7 +23,6 @@ DROP FUNCTION IF EXISTS people_age(integer) CASCADE;
 DROP FUNCTION IF EXISTS insert_participant(text, text, date, integer, text, text) CASCADE;
 DROP FUNCTION IF EXISTS insert_person(text, text, date, text, text) CASCADE;
 DROP FUNCTION IF EXISTS insert_team(text, integer[], integer, integer) CASCADE;
-DROP FUNCTION IF EXISTS insert_team(text, integer[], integer[], integer, integer) CASCADE;
 DROP FUNCTION IF EXISTS insert_team_with_mentor(text, integer[], integer[], integer, integer) CASCADE;
 DROP FUNCTION IF EXISTS insert_judge_team(integer[], integer) CASCADE;
 DROP FUNCTION IF EXISTS insert_publication(text, text) CASCADE;
@@ -39,8 +38,10 @@ DROP FUNCTION IF EXISTS add_case_to_championship(integer, integer) CASCADE;
 
 DROP FUNCTION IF EXISTS check_person_contact_info() CASCADE;
 DROP FUNCTION IF EXISTS check_participant() CASCADE;
+DROP FUNCTION IF EXISTS check_participant_only_update() CASCADE;
 DROP FUNCTION IF EXISTS check_mentor() CASCADE;
 DROP FUNCTION IF EXISTS check_judge() CASCADE;
+DROP FUNCTION IF EXISTS check_judge_only_update() CASCADE;
 DROP FUNCTION IF EXISTS check_mentor_team_dependency() CASCADE;
 
 DROP FUNCTION IF EXISTS check_teams(integer) CASCADE;
