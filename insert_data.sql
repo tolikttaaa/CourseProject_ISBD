@@ -144,10 +144,7 @@ SELECT insert_project('project8',8,'{3,5,8,9,10}','the best project ever');
 SELECT insert_project('project9',9,'{1,3,5}','the best project ever');
 SELECT insert_project('project10',10,'{1,2,7}','the best project ever');
 
---fixme нет, он не может припихнуть ментору id созданной команды
--- ERROR: query "SELECT insert_team(name, participants, leader_id, championship_id) INTO team_number" is not a SELECT
-
---SELECT insert_team_with_mentor('dreamTeam','{13,35,36,37}','{5}',13,1);
+SELECT insert_team_with_mentor('dreamTeam','{13,35,36,37}','{5}',13,1);
 
 --inserting judges
 INSERT INTO judge (person_id, championship_id, work) VALUES (7,1,'LicuidCo');

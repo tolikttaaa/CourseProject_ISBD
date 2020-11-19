@@ -272,7 +272,7 @@ DECLARE
     cur_mentor  integer;
     team_number integer;
 BEGIN
-    PERFORM insert_team(name, participants, leader_id, championship_id) INTO team_number;
+    SELECT insert_team(name, participants, leader_id, championship_id) INTO team_number;
 
     FOREACH cur_mentor IN ARRAY mentors
         LOOP
@@ -405,11 +405,11 @@ DECLARE
     cur_author  integer;
     publication_number integer;
 BEGIN
-    PERFORM insert_publication(name, description) INTO publication_number;
+    SELECT insert_publication(name, description) INTO publication_number;
 
     FOREACH cur_author IN ARRAY authors
         LOOP
-            PERFORM add_publication(cur_author, publication_number);
+            SELECT add_publication(cur_author, publication_number);
         END LOOP;
 
     RETURN publication_number;
@@ -446,16 +446,12 @@ DECLARE
     team_size integer;
     cur_team  team%rowtype;
 BEGIN
-    --fixme
-
---     IF ((SELECT COUNT(*)
---          FROM team
---                   JOIN mentor_team ON (team.team_id = mentor_team.team_id)) > 2) THEN
---         RAISE EXCEPTION 'Team can not have more than two mentors';
---     END IF;
-
     FOR cur_team IN (SELECT * FROM team WHERE team.championship_id = check_teams.championship_id)
         LOOP
+            IF ((SELECT COUNT(*) FROM mentor_team WHERE (mentor_team.team_id = cur_team.team_id)) > 2) THEN
+                RAISE EXCEPTION 'Team can not have more than 2 mentors';
+            END IF;
+
             SELECT COUNT(*) FROM participant WHERE team_id = cur_team.team_id INTO team_size;
 
             IF (team_size < 2) THEN
@@ -568,13 +564,12 @@ BEGIN
     FOR cur_judge_team IN
         (SELECT *
          FROM judge_team
-         WHERE EXISTS(SELECT COUNT(*) FROM judge WHERE judge.judge_team_id = judge_team.judge_team_id))
+         WHERE EXISTS(SELECT * FROM judge WHERE judge.judge_team_id = judge_team.judge_team_id
+                                            AND judge.championship_id = check_judge_teams.championship_id))
         LOOP
-        --fixme
-
---             IF ((SELECT COUNT(*) FROM judge WHERE judge.judge_team_id = cur_judge_team.judge_team_id) != 3) THEN
---                 RAISE EXCEPTION 'Judge teams should contains 3 judges.';
---             END IF;
+            IF ((SELECT COUNT(*) FROM judge WHERE judge.judge_team_id = cur_judge_team.judge_team_id) != 3) THEN
+                RAISE EXCEPTION 'Judge teams should contains 3 judges.';
+            END IF;
         END LOOP;
 
     RETURN true;
@@ -676,10 +671,8 @@ BEGIN
         END IF;
 
         UPDATE score
-        SET place = cur_place
-        WHERE team_id = cur_score.team_id;
-        UPDATE score
-        SET special_award = CASE
+        SET place = cur_place,
+            special_award = CASE
                 WHEN cur_place = 1 THEN 'Golden award'
                 WHEN cur_place = 2 THEN 'Silver award'
                 WHEN cur_place = 3 THEN 'Bronze award'

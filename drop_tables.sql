@@ -43,6 +43,7 @@ DROP FUNCTION IF EXISTS check_mentor() CASCADE;
 DROP FUNCTION IF EXISTS check_judge() CASCADE;
 DROP FUNCTION IF EXISTS check_judge_only_update() CASCADE;
 DROP FUNCTION IF EXISTS check_mentor_team_dependency() CASCADE;
+DROP FUNCTION IF EXISTS check_performance() CASCADE;
 
 DROP FUNCTION IF EXISTS check_teams(integer) CASCADE;
 DROP FUNCTION IF EXISTS check_projects(integer) CASCADE;
