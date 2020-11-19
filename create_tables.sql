@@ -409,7 +409,7 @@ BEGIN
 
     FOREACH cur_author IN ARRAY authors
         LOOP
-            SELECT add_publication(cur_author, publication_number);
+            PERFORM add_publication(cur_author, publication_number);
         END LOOP;
 
     RETURN publication_number;
@@ -924,5 +924,10 @@ CREATE TRIGGER checkPerformance
     FOR EACH ROW
 EXECUTE PROCEDURE check_performance();
 
-
+--indexes
+CREATE INDEX "final_score_index" ON score USING btree ("final_score");
+CREATE INDEX "team_name_index" ON team USING btree ("name");
+CREATE INDEX "person_last_name_index" ON people USING btree ("last_name");
+CREATE INDEX "person_first_name_index" ON people USING btree ("first_name");
+CREATE INDEX "championship_beginning_index" ON championship USING btree ("begin_date");
 

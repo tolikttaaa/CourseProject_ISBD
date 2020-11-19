@@ -45,6 +45,11 @@ SELECT add_publication(10,6);
 SELECT add_publication(11,7);
 SELECT add_publication(12,8);
 
+--inserting publication with authors
+SELECT insert_publication_with_authors('Algorithms','Book','{5,6,7}');
+SELECT insert_publication_with_authors('DBMS','Oracle','{10,6,7}');
+SELECT insert_publication_with_authors('Algorithms & DataStructures','Book','{5,6,7}');
+
 --inserting platforms
 INSERT INTO platform (name, address, contact_person_id) VALUES ('main building', 'Kronverkskiy 49', 1);
 INSERT INTO platform (name, address, contact_person_id) VALUES ('lomo', 'Lomonosova 9', 2);
@@ -108,12 +113,12 @@ SELECT insert_participant('Melissa','Harris','2000-08-7',2, '87154321', 'test45@
 SELECT insert_participant('Edward','Harrison','2000-08-8',2, '87254321', 'test46@test.com');
 
 --insert teams (массив)
-SELECT insert_team('fifth','{14,15,16,17}',14,1);
-SELECT insert_team('six','{18,19,20,21}',19,1);
-SELECT insert_team('seventh','{22,23,24,25}',23,1);
-SELECT insert_team('eighth','{26,27,28,29}',26,1);
-SELECT insert_team('nine','{30,31,32}',30,1);
-SELECT insert_team('ten','{34,33}',34,1);
+SELECT insert_team('first','{14,15,16,17}',14,1);
+SELECT insert_team('second','{18,19,20,21}',19,1);
+SELECT insert_team('third','{22,23,24,25}',23,1);
+SELECT insert_team('fourth','{26,27,28,29}',26,1);
+SELECT insert_team('fifth','{30,31,32}',30,1);
+SELECT insert_team('please','{34,33}',34,1);
 SELECT insert_team('help','{35,36,37,38}',35,2);
 SELECT insert_team('to','{39,40,13}',39,2);
 SELECT insert_team('my','{41,42,43}',41,2);
@@ -123,14 +128,13 @@ SELECT insert_team('imagination','{50,49,48,47}',49,3);
 INSERT INTO mentor (person_id, championship_id) VALUES (5,1);
 INSERT INTO mentor (person_id, championship_id) VALUES (6,1);
 INSERT INTO mentor (person_id, championship_id) VALUES (7,2);
-INSERT INTO mentor (person_id, championship_id) VALUES (8,2);
-INSERT INTO mentor (person_id, championship_id) VALUES (9,2);
+INSERT INTO mentor (person_id, championship_id) VALUES (5,3);
 
 --adding mentor to the team
 SELECT add_mentor_to_team(5,1,1);
 SELECT add_mentor_to_team(6,1,2);
-SELECT add_mentor_to_team(8,2,8);
-SELECT add_mentor_to_team(9,2,9);
+SELECT add_mentor_to_team(7,2,8);
+SELECT add_mentor_to_team(7,2,9);
 
 --creating projects
 SELECT insert_project('project1',1,'{1,2}','the best project ever');
@@ -145,14 +149,30 @@ SELECT insert_project('project9',9,'{1,3,5}','the best project ever');
 SELECT insert_project('project10',10,'{1,2,7}','the best project ever');
 
 SELECT insert_team_with_mentor('dreamTeam','{13,35,36,37}','{5}',13,1);
+SELECT insert_team_with_mentor('dreamTeam','{38,39,40,41}','{5}',38,1);
+SELECT insert_team_with_mentor('dreamTeam','{42,43,44,45}','{5}',43,1);
+SELECT insert_team_with_mentor('dreamTeam','{46,47,48,49}','{7}',46,2);
+SELECT insert_team_with_mentor('dreamTeam','{50,51,52}','{7}',51,2);
+SELECT insert_team_with_mentor('dreamTeam','{54,53,58}','{7}',58,2);
+SELECT insert_team_with_mentor('dreamTeam','{59,60,61}','{7}',59,2);
+SELECT insert_team_with_mentor('dreamTeam','{55,56,57}','{5}',55,3);
 
+SELECT insert_project('project10_1',10,'{1,2,7,8}','the second best project ever');
+SELECT insert_project('project11',11,'{1,2,7,8}','the best project ever');
+SELECT insert_project('project12',12,'{1,2,7,8}','the best project ever');
+SELECT insert_project('project13',13,'{1,2,7,8}','the best project ever');
+SELECT insert_project('project14',14,'{1,2,7,8}','the best project ever');
+SELECT insert_project('project15',15,'{1,2,7,8}','the best project ever');
+SELECT insert_project('project16',16,'{1,2,7,8}','the best project ever');
+SELECT insert_project('project17',17,'{1,2,7,8}','the best project ever');
+SELECT insert_project('project18',18,'{1,2,7,8}','the best project ever');
 --inserting judges
 INSERT INTO judge (person_id, championship_id, work) VALUES (7,1,'LicuidCo');
 INSERT INTO judge (person_id, championship_id, work) VALUES (8,1,'JobCo');
 INSERT INTO judge (person_id, championship_id, work) VALUES (9,1,'CodeCo');;
-INSERT INTO judge (person_id, championship_id, work) VALUES (7,3,'LicuidCo');
-INSERT INTO judge (person_id, championship_id, work) VALUES (8,3,'JobCo');
-INSERT INTO judge (person_id, championship_id, work) VALUES (9,3,'CodeCo');
+INSERT INTO judge (person_id, championship_id, work) VALUES (6,3,'WorkCo');
+INSERT INTO judge (person_id, championship_id, work) VALUES (9,3,'CodeX');
+INSERT INTO judge (person_id, championship_id, work) VALUES (7,3,'CodeX');
 
 --adding cases
 SELECT add_case_to_championship(1,1);
@@ -180,7 +200,7 @@ SELECT add_case_to_championship(3,11);
 
 --inserting judges
 SELECT insert_judge_team('{7,8,9}',1);
-SELECT insert_judge_team('{7,8,9}',3);
+SELECT insert_judge_team('{7,6,9}',3);
 
 
 --inserting performances (работает)
@@ -193,6 +213,8 @@ INSERT INTO performance (project_id, performance_time, judge_team_id, platform_i
 INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (7,'2020-03-16 10:30:00',1,2);
 INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (8,'2020-03-17 10:30:00',1,2);
 INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (9,'2020-03-18 10:30:00',1,2);
+INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (10,'2020-03-18 10:30:00',1,4);
+INSERT INTO performance (project_id, performance_time, judge_team_id, platform_id) VALUES (11,'2020-03-19 10:30:00',1,4);
 
 --starting championship
 SELECT start_championship(1);
