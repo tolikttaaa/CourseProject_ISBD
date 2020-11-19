@@ -181,8 +181,8 @@ PostgreSQL автоматически создает hash-индексы для 
 и сравнения именно по первичному ключу. Также ускорения взаимодеяствия с базой данных были дополнительно созданы btree-индексы:
 
 **Индексы**:
-* `championship_beginning_index` - btree индекс на атрибут `begin_date` таблицы `championship, позволяющий ускорить опирации сравнения;
+* `championship_beginning_index` - btree индекс на атрибут `begin_date` таблицы `championship`, позволяющий ускорить опирации сравнения;
 * `final_score_index` - btree индекс на атрибут `final_score` таблицы `score`, позволяющий ускорить опирации сравнения;
-* `person_first_name_index` - btree индекс на атрибут `first_score` таблицы `people, позволяющий ускорить опирации сравнения;
-* `person_last_name_index` - btree индекс на атрибут `last_name` таблицы `people, позволяющий ускорить опирации сравнения;
-* `team_name_index` _ btree индекс на атрибут `name` таблицы `team, позволяющий ускорить опирации сравнения.
+* `person_first_name_index` - btree индекс на атрибут `first_score` таблицы `people`, позволяющий ускорить опирации сравнения;
+* `person_last_name_index` - btree индекс на атрибут `last_name` таблицы `people`, позволяющий ускорить опирации сравнения;
+* `team_name_index` - btree индекс на атрибут `name` таблицы `team`, позволяющий ускорить опирации сравнения.
