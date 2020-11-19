@@ -191,6 +191,30 @@ BEGIN
 END;
 $$ LANGUAGE plpgSQL;
 
+-- insert fully new person
+CREATE OR REPLACE FUNCTION insert_person(first_name text,
+                                              last_name text,
+                                              birth_date date,
+                                              phone_number text,
+                                              email_address text) RETURNS integer AS
+$$
+DECLARE
+    person integer;
+
+BEGIN
+    SELECT NEXTVAL('people_person_id_seq') INTO person;
+
+    INSERT INTO people (person_id, first_name, last_name, birth_date)
+    VALUES (person, insert_person.first_name, insert_person.last_name, insert_person.birth_date);
+
+    INSERT INTO email (email, person_id) VALUES (insert_person.email_address, person);
+    INSERT INTO phone (phone_number, person_id) VALUES (insert_person.phone_number, person);
+
+
+    RETURN person;
+END;
+$$ LANGUAGE plpgSQL;
+
 -- create team without mentors
 CREATE OR REPLACE FUNCTION insert_team(name text,
                                        participants integer[],
@@ -345,13 +369,14 @@ $$
 DECLARE
     cur_judge integer;
 BEGIN
+    --fixme оно не работало, я мзменила строку 373, но это не помогло (ломается в Update)
+    INSERT INTO judge_team (judge_team_id) VALUES (CURRVAL('judge_team_judge_team_id_seq'));
+
     FOREACH cur_judge IN ARRAY judges
         LOOP
-            INSERT INTO judge_team DEFAULT VALUES;
-
-            UPDATE judge
-            SET judge.judge_team_id = CURRVAL('judge_team_judge_team_id_seq')
-            WHERE person_id = cur_judge AND judge.championship_id = insert_judge_team.championship_id;
+             UPDATE judge
+             SET judge.judge_team_id = CURRVAL('judge_team_judge_team_id_seq')
+             WHERE judge.person_id = cur_judge AND judge.championship_id = insert_judge_team.championship_id;
         END LOOP;
 END;
 $$ LANGUAGE plpgSQL;
@@ -397,7 +422,7 @@ $$
 BEGIN
     UPDATE performance
     SET points = rate_performance.points
-    WHERE performance_id = rate_performance.performance_id;
+    WHERE performance.performance_id = rate_performance.performance_id;
 END;
 $$ LANGUAGE plpgSQL;
 
@@ -690,13 +715,14 @@ BEGIN
                 AND NEW.championship_id = participant.championship_id) THEN
         RAISE EXCEPTION 'Judge can not be a participant in the same championship';
     END IF;
+--fixme оно не дает вставлять верные данные
 
-    IF NEW.judge_team_id IS NOT NULL AND NEW.championship_id != ALL
-                                         (SELECT judge.championship_id
-                                          FROM judge
-                                          WHERE judge_team_id = NEW.judge_team_id) THEN
-        RAISE EXCEPTION 'Judges in one judge team should be from one championship';
-    END IF;
+--     IF NEW.judge_team_id IS NOT NULL AND NEW.championship_id != ALL
+--                                          (SELECT judge.championship_id
+--                                           FROM judge
+--                                           WHERE judge_team_id = NEW.judge_team_id) THEN
+--         RAISE EXCEPTION 'Judges in one judge team should be from one championship';
+--     END IF;
     RETURN NEW;
 END;
 $checkJudge$ LANGUAGE plpgsql;
