@@ -687,6 +687,9 @@ BEGIN
             END
         WHERE team_id = cur_score.team_id;
     END LOOP;
+    UPDATE championship
+    SET end_date = now()
+    WHERE championship.championship_id = end_championship.championship_id;
 END;
 $$ LANGUAGE plpgSQL;
 
