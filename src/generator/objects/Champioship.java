@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class Champioship {
     private static int cnt = 1;
 
-    private static String[] CHAMPIONSHIP_NAMES = { "Achernar", "Acrux", "Aldebaran", "Alpha Centauri",
+    private static final String[] CHAMPIONSHIP_NAMES = { "Achernar", "Acrux", "Aldebaran", "Alpha Centauri",
             "Altair", "Antares", "Arcturus", "Betelgeuse", "Canopus", "Capella", "Castor", "Deneb",
             "Fomalhaut", "Pollux", "Procyon", "Regulus", "Rigel", "Sirius", "Spica", "Vega" };
 
