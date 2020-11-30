@@ -6,11 +6,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
 
 public class Generator {
-    public static final Random random = new Random(23956630);
+    public static final Random random = new Random(100);
     private static final StringBuilder builder = new StringBuilder();
 
     private static final String SCRIPT_SEPARATOR = "\n---------------------\n";
@@ -23,39 +22,6 @@ public class Generator {
     private static final int COUNT_OF_MENTORS = 30;
     private static final int COUNT_OF_JUDGES = 12;
     private static final int COUNT_OF_PUBLICATION = 20;
-
-    private static final String[] FIRST_NAMES = { "Olivia", "Emma", "Ava",
-            "Sophia", "Isabella", "Charlotte", "Amelia", "Mia", "Harper",
-            "Evelyn", "Abigail", "Emily", "Ella", "Elizabeth", "Camila",
-            "Luna", "Sofia", "Avery", "Mila", "Aria", "Scarlett", "Penelope",
-            "Layla", "Chloe", "Victoria", "Madison", "Eleanor", "Grace",
-            "Nora", "Riley", "Zoey", "Hannah", "Hazel", "Lily", "Ellie",
-            "Violet", "Lillian", "Zoe", "Stella", "Aurora", "Natalie",
-            "Emilia", "Everly", "Leah", "Aubrey", "Willow", "Addison",
-            "Lucy", "Audrey", "Bella", "Liam", "Noah", "William", "James",
-            "Logan", "Benjamin", "Mason", "Elijah", "Oliver", "Jacob",
-            "Lucas", "Michael", "Alexander", "Ethan", "Daniel", "Matthew",
-            "Aiden", "Henry", "Joseph", "Jackson", "Samuel", "Sebastian",
-            "David", "Carter", "Wyatt", "Jayden", "John", "Owen", "Dylan",
-            "Luke", "Gabriel", "Anthony", "Isaac", "Grayson", "Jack",
-            "Julian", "Levi", "Christopher", "Joshua", "Andrew", "Lincoln",
-            "Mateo", "Ryan", "Jaxon", "Nathan", "Aaron", "Isaiah", "Thomas",
-            "Charles", "Caleb" };
-
-    private static final String[] LAST_NAMES = { "Smith", "Johnson", "Williams",
-            "Jones", "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor",
-            "Anderson", "Thomas", "Jackson", "White", "Harris", "Martin",
-            "Thompson", "Garcia", "Martinez", "Robinson", "Clark", "Rodriguez",
-            "Lewis", "Lee", "Walker", "Hall", "Allen", "Young", "Hernandez",
-            "King", "Wright", "Lopez", "Hill", "Scott", "Green", "Adams",
-            "Baker", "Gonzalez", "Nelson", "Carter", "Mitchell", "Perez",
-            "Roberts", "Turner", "Phillips", "Campbell", "Parker", "Evans",
-            "Edwards", "Collins" };
-
-    private static final String[]PUBLICATION_NAMES = { "Web developing in modern world", "Cybernetic",
-            "Technology As A Service","Internet of Things (IoT)", "OEM and ODM Development", "DevOps for software and hardware",
-            "Application Containers", "Artificial Intelligence", "Operation Systems", "Software-defined networking",
-            "Big Data", "IPv6", "Cloud computing", "Quantum physics", "Mechanic", "Optics", "Finances", "Investments", "Maths"};
 
     public static ArrayList<Case> cases = new ArrayList<>();
     public static ArrayList<Champioship> championships = new ArrayList<>();
@@ -86,13 +52,13 @@ public class Generator {
         for (int _ = 0; _ < COUNT_OF_PLATFORMS; _++) {
             Person randomPerson = selectRandomPerson();
 
-            Phone.generate(randomPerson.person_id);
-            if (random.nextBoolean())
+            while (random.nextInt(10) > 3) {
                 Phone.generate(randomPerson.person_id);
+            }
 
-            Email.generate(randomPerson.person_id);
-            if (random.nextBoolean())
+            while (random.nextInt(10) > 3) {
                 Email.generate(randomPerson.person_id);
+            }
 
             Platform.generate(randomPerson.person_id);
         }
@@ -101,19 +67,47 @@ public class Generator {
 
         //generate cases
         for (int _ = 0; _ < COUNT_OF_CASES; _++) {
-            //TODO
+            Case.generate();
         }
 
-        //generate championships
-        for (int _ = 0; _ < COUNT_OF_CHAMPIONSHIPS; _++) {
-            //TODO
-
-            addScript(SCRIPT_SEPARATOR);
-        }
+        addScript(SCRIPT_SEPARATOR);
 
         //generate random publication
         for (int _ = 0; _ < COUNT_OF_PUBLICATION; _++) {
-            Publication.generate();
+            int cntAuthors = random.nextInt(5) + 3;
+
+            Set<Integer> authors = new HashSet<>();
+            while (authors.size() < cntAuthors) {
+                authors.add(selectRandomPerson().person_id);
+            }
+
+            Publication.generate(new ArrayList<>(authors));
+        }
+
+        addScript(SCRIPT_SEPARATOR);
+
+        //generate championships
+        for (int _ = 0; _ < COUNT_OF_CHAMPIONSHIPS; _++) {
+            int cntCases = random.nextInt(8) + 3;
+
+            Set<Integer> cases = new HashSet<>();
+            while (cases.size() < cntCases) {
+                cases.add(selectRandomCase().case_id);
+            }
+
+            int cntPlatforms = random.nextInt(5) + 2;
+
+            Set<Integer> platforms = new HashSet<>();
+            while (platforms.size() < cntPlatforms) {
+                platforms.add(selectRandomPlatform().platform_id);
+            }
+
+            Champioship champioship = Champioship.generate(
+                    new ArrayList<>(cases),
+                    new ArrayList<>(platforms)
+            );
+
+            addScript(SCRIPT_SEPARATOR);
         }
 
         out.println(builder);
@@ -123,14 +117,6 @@ public class Generator {
     public static void addScript(String script) {
         builder.append(script);
         builder.append("\n");
-    }
-
-    public static String generateLastName() {
-        return LAST_NAMES[random.nextInt(LAST_NAMES.length)];
-    }
-
-    public static String generateFirstName() {
-        return FIRST_NAMES[random.nextInt(FIRST_NAMES.length)];
     }
 
     public static LocalDate generateDate() {
@@ -150,9 +136,29 @@ public class Generator {
         return LocalDate.ofEpochDay(cur);
     }
 
+    public static String getIntArray(ArrayList<Integer> array) {
+        StringBuilder res = new StringBuilder();
+
+        res.append('{');
+        res.append(array.get(0));
+        for (int i = 1; i < array.size(); i++) {
+            res.append(',');
+            res.append(array.get(i));
+        }
+        res.append('}');
+
+        return res.toString();
+    }
+
     private static Person selectRandomPerson() {
         return people.get(random.nextInt(people.size()));
     }
 
-    public static String generatePublicationName() { return PUBLICATION_NAMES[random.nextInt(PUBLICATION_NAMES.length)]; }
+    private static Case selectRandomCase() {
+        return cases.get(random.nextInt(cases.size()));
+    }
+
+    private static Platform selectRandomPlatform() {
+        return platforms.get(random.nextInt(platforms.size()));
+    }
 }

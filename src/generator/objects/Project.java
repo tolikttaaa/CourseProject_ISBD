@@ -7,7 +7,7 @@ import generator.Generator;
 public class Project {
     private static int cnt = 1;
 
-    private static final String INSERT_SCRIPT_TEMPLATE = "SELECT insert_project('%s', %d, '{%d}', '%s');";
+    private static final String INSERT_SCRIPT_TEMPLATE = "SELECT insert_project('%s', %d, '%s', '%s');";
     private static final String PROJECT_NAME_TEMPLATE = "Project %d";
 
     public int project_id;
