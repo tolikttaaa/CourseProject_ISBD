@@ -52,6 +52,11 @@ public class Generator {
             "Roberts", "Turner", "Phillips", "Campbell", "Parker", "Evans",
             "Edwards", "Collins" };
 
+    private static final String[]PUBLICATION_NAMES = { "Web developing in modern world", "Cybernetic",
+            "Technology As A Service","Internet of Things (IoT)", "OEM and ODM Development", "DevOps for software and hardware",
+            "Application Containers", "Artificial Intelligence", "Operation Systems", "Software-defined networking",
+            "Big Data", "IPv6", "Cloud computing", "Quantum physics", "Mechanic", "Optics", "Finances", "Investments", "Maths"};
+
     public static ArrayList<Case> cases = new ArrayList<>();
     public static ArrayList<Champioship> championships = new ArrayList<>();
     public static ArrayList<Email> emails = new ArrayList<>();
@@ -106,6 +111,11 @@ public class Generator {
             addScript(SCRIPT_SEPARATOR);
         }
 
+        //generate random publication
+        for (int _ = 0; _ < COUNT_OF_PUBLICATION; _++) {
+            Publication.generate();
+        }
+
         out.println(builder);
         out.close();
     }
@@ -143,4 +153,6 @@ public class Generator {
     private static Person selectRandomPerson() {
         return people.get(random.nextInt(people.size()));
     }
+
+    public static String generatePublicationName() { return PUBLICATION_NAMES[random.nextInt(PUBLICATION_NAMES.length)]; }
 }
