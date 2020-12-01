@@ -250,6 +250,10 @@ public class Generator {
                 int maxPoints = cases.stream()
                         .filter(curCase -> projectCases.contains(curCase.case_id))
                         .mapToInt(curCase -> curCase.complexity).sum();
+
+                float curPoints = random.nextInt(maxPoints) + random.nextInt(11) * 0.1f;
+
+                addScript(String.format(Locale.US,"SELECT rate_performance(%d, %.2f)", performance.performance_id, curPoints));
             }
 
             addScript(SMALL_SCRIPT_SEPARATOR);
