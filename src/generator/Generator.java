@@ -209,7 +209,7 @@ public class Generator {
             for (Team team : teams) {
                 Project.generate(team.team_id, getRandomSublist(championship.cases));
 
-                while (random.nextInt(10) > 6) {
+                while (random.nextInt(10) > 7) {
                     Project.generate(team.team_id, getRandomSublist(championship.cases));
                 }
             }
@@ -217,14 +217,29 @@ public class Generator {
             addScript(SMALL_SCRIPT_SEPARATOR);
 
             //performance
+            for (Project project : projects) {
+                Performance.generate(project.project_id,
+                        getRandomElement(judgeTeams).judge_team_id,
+                        getRandomElement(championship.platforms));
+
+                while (random.nextInt(10) > 8) {
+                    Performance.generate(project.project_id,
+                            getRandomElement(judgeTeams).judge_team_id,
+                            getRandomElement(championship.platforms));
+                }
+            }
+
+            addScript(SMALL_SCRIPT_SEPARATOR);
 
             //startChampionship
+            addScript(String.format("SELECT start_championship(%d);", championship.championship_id));
 
-            //rate
+            addScript(SMALL_SCRIPT_SEPARATOR);
+
+            for (Performance performance)
 
             //endChampionship
-
-            //TODO
+            addScript(String.format("SELECT end_championship(%d);", championship.championship_id));
         }
 
         out.println(builder);
@@ -376,8 +391,12 @@ public class Generator {
         }
     }
 
-    public static <T> ArrayList<T> getRandomSublist(ArrayList<T> input) {
-        ArrayList<T> result = new ArrayList<>();
+    public static <T> T getRandomElement(List<T> input) {
+        return input.get(random.nextInt(input.size()));
+    }
+
+    public static <T> List<T> getRandomSublist(List<T> input) {
+        List<T> result = new ArrayList<>();
 
         while (result.isEmpty()) {
             for (T element : input) {
