@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.*;
 
 public class Generator {
@@ -51,6 +52,11 @@ public class Generator {
         PrintWriter out = new PrintWriter(new File("test.sql"));
 
         //generate random people
+        for (int iter = 0; iter < COUNT_OF_MENTORS + COUNT_OF_JUDGES; iter++) {
+            Person.generate(generateDate(LocalDate.of(1950, 1, 1),
+                    LocalDate.of(1990, 1, 1)));
+        }
+
         for (int iter = 0; iter < COUNT_OF_PEOPLE; iter++) {
             Person.generate();
         }
@@ -87,7 +93,7 @@ public class Generator {
 
             Set<Integer> authors = new HashSet<>();
             while (authors.size() < cntAuthors) {
-                authors.add(selectRandomPerson().person_id);
+                authors.add(selectRandomPersonWithAge(27).person_id);
             }
 
             Publication.generate(new ArrayList<>(authors));
@@ -156,7 +162,7 @@ public class Generator {
             //generate participant
             int curCountOfParticipants = COUNT_OF_PARTICIPANTS + (random.nextInt(151) - 75);
             while (participants.size() < curCountOfParticipants) {
-                int person_id = selectRandomPersonWithoutPublication();
+                int person_id = selectRandomParticipantFromPerson();
                 participants_id.add(person_id);
                 Participant.generate(person_id, championship.championship_id);
             }
@@ -164,7 +170,7 @@ public class Generator {
             addScript(SMALL_SCRIPT_SEPARATOR);
 
             //generate teams
-            while (participants_id.size() - used_participants_id.size() > 2) {
+            while (participants_id.size() - used_participants_id.size() >= 5) {
                 int teamSize = random.nextInt(4) + 2;
                 Set<Integer> teammates = new HashSet<>();
                 while (teammates.size() < teamSize) {
@@ -300,15 +306,34 @@ public class Generator {
         }
     }
 
-    private static int selectRandomPersonWithoutPublication() {
+    private static Person selectRandomPersonWithAge(int age) {
         while (true) {
             Person person = people.get(random.nextInt(people.size()));
 
-            if (!judges_id.contains(person.person_id)
+            if (age(person.birth_date) > age) {
+                return person;
+            }
+        }
+    }
+
+    private static int selectRandomParticipantFromPerson() {
+        while (true) {
+            Person person = people.get(random.nextInt(people.size()));
+
+            if (age(person.birth_date) < 27
+                    && !judges_id.contains(person.person_id)
                     && !mentors_id.contains(person.person_id)
                     && !participants_id.contains(person.person_id)) {
                 return person.person_id;
             }
+        }
+    }
+
+    public static int age(LocalDate birthDate) {
+        if ((birthDate != null)) {
+            return Period.between(birthDate, LocalDate.now()).getYears();
+        } else {
+            return 0;
         }
     }
 }
