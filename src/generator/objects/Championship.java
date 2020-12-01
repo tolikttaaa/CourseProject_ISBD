@@ -3,7 +3,7 @@ package generator.objects;
 import generator.Generator;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.List;
 
 public class Championship {
     private static int cnt = 1;
@@ -20,10 +20,10 @@ public class Championship {
     public String description;
     public LocalDate begin_date;
     public LocalDate end_date;
-    public ArrayList<Integer> platforms;
-    public ArrayList<Integer> cases;
+    public List<Integer> platforms;
+    public List<Integer> cases;
 
-    private Championship(String name, String description, ArrayList<Integer> cases, ArrayList<Integer> platforms) {
+    private Championship(String name, String description, List<Integer> cases, List<Integer> platforms) {
         this.championship_id = cnt++;
         this.name = name;
         this.description = description;
@@ -31,12 +31,12 @@ public class Championship {
         this.cases = cases;
     }
 
-    public static Championship generate(ArrayList<Integer> cases, ArrayList<Integer> platforms) {
+    public static Championship generate(List<Integer> cases, List<Integer> platforms) {
         String title = generateChampionshipName();
         return insert(title, String.format(DESCRIPTION_TEMPLATE, title), cases, platforms);
     }
 
-    public static Championship insert(String name, String description, ArrayList<Integer> cases, ArrayList<Integer> platforms) {
+    public static Championship insert(String name, String description, List<Integer> cases, List<Integer> platforms) {
         Generator.addScript(String.format(INSERT_SCRIPT_TEMPLATE,
                 name,
                 description,

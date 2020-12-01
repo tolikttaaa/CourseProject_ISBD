@@ -2,7 +2,7 @@ package generator.objects;
 
 import generator.Generator;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -34,21 +34,21 @@ public class Publication {
     public int publication_id;
     public String name;
     public String description;
-    public ArrayList<Integer> authors;
+    public List<Integer> authors;
 
-    private Publication(String name, String description, ArrayList<Integer> authors) {
+    private Publication(String name, String description, List<Integer> authors) {
         this.publication_id = cnt++;
         this.name = name;
         this.description = description;
         this.authors = authors;
     }
 
-    public static Publication generate(ArrayList<Integer> authors) {
+    public static Publication generate(List<Integer> authors) {
         String title = generatePublicationName();
         return insert(title, String.format(DESCRIPTION_TEMPLATE, title.toLowerCase()), authors);
     }
 
-    public static Publication insert(String name, String description, ArrayList<Integer> authors) {
+    public static Publication insert(String name, String description, List<Integer> authors) {
         Generator.addScript(String.format(INSERT_SCRIPT_TEMPLATE, name, description, Generator.getIntArray(authors)));
 
         Publication newPublication = new Publication(name, description, authors);

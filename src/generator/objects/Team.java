@@ -1,8 +1,8 @@
 package generator.objects;
 
 import generator.Generator;
+import java.util.List;
 
-import java.util.ArrayList;
 public class Team {
     private static int cnt = 1;
 
@@ -114,11 +114,11 @@ public class Team {
     public int team_id;
     public String name;
     public int leader_id;
-    public ArrayList<Integer> teammates;
-    public ArrayList<Integer> mentors;
+    public List<Integer> teammates;
+    public List<Integer> mentors;
     public int championship_id;
 
-    private Team(String name, int leader_id, ArrayList<Integer> teammates, ArrayList<Integer> mentors, int championship_id) {
+    private Team(String name, int leader_id, List<Integer> teammates, List<Integer> mentors, int championship_id) {
         this.team_id = cnt++;
         this.name = name;
         this.leader_id = leader_id;
@@ -127,11 +127,11 @@ public class Team {
         this.championship_id = championship_id;
     }
 
-    public static Team generate(ArrayList<Integer> teammates, ArrayList<Integer> mentors, int championship_id) {
+    public static Team generate(List<Integer> teammates, List<Integer> mentors, int championship_id) {
         return insert(generateTeamName(), teammates.get(0), teammates, mentors, championship_id);
     }
 
-    public static Team insert(String name, int leader_id, ArrayList<Integer> teammates, ArrayList<Integer> mentors, int championship_id) {
+    public static Team insert(String name, int leader_id, List<Integer> teammates, List<Integer> mentors, int championship_id) {
         if (mentors.size() > 0) {
             Generator.addScript(String.format(INSERT_SCRIPT_WITH_MENTORS_TEMPLATE,
                     name,

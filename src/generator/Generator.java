@@ -106,9 +106,9 @@ public class Generator {
 
             int cntCases = random.nextInt(8) + 3;
 
-            Set<Integer> cases = new HashSet<>();
-            while (cases.size() < cntCases) {
-                cases.add(selectRandomCase().case_id);
+            Set<Integer> curCases = new HashSet<>();
+            while (curCases.size() < cntCases) {
+                curCases.add(selectRandomCase().case_id);
             }
 
             int cntPlatforms = random.nextInt(5) + 2;
@@ -119,7 +119,7 @@ public class Generator {
             }
 
             Championship championship = Championship.generate(
-                    new ArrayList<>(cases),
+                    new ArrayList<>(curCases),
                     new ArrayList<>(platforms)
             );
 
@@ -236,7 +236,23 @@ public class Generator {
 
             addScript(SMALL_SCRIPT_SEPARATOR);
 
-            for (Performance performance)
+            //rate performances
+            for (Performance performance : performances) {
+                Optional<Project> curProject = projects.stream()
+                        .filter(project -> project.project_id == performance.project_id).findFirst();
+                final List<Integer> projectCases;
+                if (curProject.isPresent()) {
+                    projectCases = curProject.get().cases;
+                } else {
+                    projectCases = new ArrayList<>();
+                    System.err.println("ERROR_BD_ERROR");
+                }
+                int maxPoints = cases.stream()
+                        .filter(curCase -> projectCases.contains(curCase.case_id))
+                        .mapToInt(curCase -> curCase.complexity).sum();
+            }
+
+            addScript(SMALL_SCRIPT_SEPARATOR);
 
             //endChampionship
             addScript(String.format("SELECT end_championship(%d);", championship.championship_id));
@@ -268,7 +284,7 @@ public class Generator {
         return LocalDate.ofEpochDay(cur);
     }
 
-    public static String getIntArray(ArrayList<Integer> array) {
+    public static String getIntArray(List<Integer> array) {
         StringBuilder res = new StringBuilder();
 
         res.append('{');

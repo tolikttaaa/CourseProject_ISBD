@@ -2,7 +2,7 @@ package generator.objects;
 
 import generator.Generator;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class Project {
     private static int cnt = 1;
@@ -14,10 +14,10 @@ public class Project {
     public int project_id;
     public String name;
     public int team_id;
-    public ArrayList<Integer> cases;
+    public List<Integer> cases;
     public String description;
 
-    private Project(String name, int team_id, ArrayList<Integer> cases, String description) {
+    private Project(String name, int team_id, List<Integer> cases, String description) {
         this.project_id = cnt++;
         this.name = name;
         this.team_id = team_id;
@@ -25,12 +25,12 @@ public class Project {
         this.description = description;
     }
 
-    public static Project generate(int team_id, ArrayList<Integer> cases) {
+    public static Project generate(int team_id, List<Integer> cases) {
         String name = generateProjectName();
         return insert(name, team_id, cases, String.format(PROJECT_DESCRIPTION_TEMPLATE, name));
     }
 
-    public static Project insert(String name, int team_id, ArrayList<Integer> cases, String description) {
+    public static Project insert(String name, int team_id, List<Integer> cases, String description) {
         Generator.addScript(String.format(INSERT_SCRIPT_TEMPLATE, name, team_id, Generator.getIntArray(cases), description));
 
         Project newProject = new Project(name, team_id, cases, description);
