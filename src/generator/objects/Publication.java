@@ -10,7 +10,7 @@ import java.util.Set;
 public class Publication {
     private static int cnt = 1;
 
-    private static Set<String> PUBLICATION_NAMES = new HashSet<>(Arrays.asList("Web developing in modern world",
+    private static final Set<String> PUBLICATION_NAMES = new HashSet<>(Arrays.asList("Web developing in modern world",
             "Cybernetic", "Technology As A Service", "Internet of Things (IoT)", "OEM and ODM Development",
             "DevOps for software and hardware", "Application Containers", "Artificial Intelligence",
             "Operation Systems", "Software-defined networking", "Big Data", "IPv6", "Cloud computing",

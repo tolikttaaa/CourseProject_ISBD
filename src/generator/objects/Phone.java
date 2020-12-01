@@ -5,7 +5,7 @@ import generator.Generator;
 public class Phone {
     private static int cnt = 1;
 
-    private static final String INSERT_SCRIPT_TEMPLATE = "INSERT INTO phone (phone, person_id) VALUES ('%s', %d);";
+    private static final String INSERT_SCRIPT_TEMPLATE = "INSERT INTO phone (phone_number, person_id) VALUES ('%s', %d);";
     private static final String PHONE_TEMPLATE = "7%010d";
 
     public String phone;

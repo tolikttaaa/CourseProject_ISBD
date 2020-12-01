@@ -5,7 +5,7 @@ import generator.Generator;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
-public class Champioship {
+public class Championship {
     private static int cnt = 1;
 
     private static final String[] CHAMPIONSHIP_NAMES = { "Achernar", "Acrux", "Aldebaran", "Alpha Centauri",
@@ -23,7 +23,7 @@ public class Champioship {
     public ArrayList<Integer> platforms;
     public ArrayList<Integer> cases;
 
-    private Champioship(String name, String description, ArrayList<Integer> cases, ArrayList<Integer> platforms) {
+    private Championship(String name, String description, ArrayList<Integer> cases, ArrayList<Integer> platforms) {
         this.championship_id = cnt++;
         this.name = name;
         this.description = description;
@@ -31,19 +31,19 @@ public class Champioship {
         this.cases = cases;
     }
 
-    public static Champioship generate(ArrayList<Integer> cases, ArrayList<Integer> platforms) {
+    public static Championship generate(ArrayList<Integer> cases, ArrayList<Integer> platforms) {
         String title = generateChampionshipName();
         return insert(title, String.format(DESCRIPTION_TEMPLATE, title), cases, platforms);
     }
 
-    public static Champioship insert(String name, String description, ArrayList<Integer> cases, ArrayList<Integer> platforms) {
+    public static Championship insert(String name, String description, ArrayList<Integer> cases, ArrayList<Integer> platforms) {
         Generator.addScript(String.format(INSERT_SCRIPT_TEMPLATE,
                 name,
                 description,
                 Generator.getIntArray(cases),
                 Generator.getIntArray(platforms)));
 
-        Champioship newChampionship = new Champioship(name, description, cases, platforms);
+        Championship newChampionship = new Championship(name, description, cases, platforms);
         Generator.championships.add(newChampionship);
 
         return newChampionship;

@@ -12,6 +12,7 @@ public class Generator {
     public static final Random random = new Random(100);
     private static final StringBuilder builder = new StringBuilder();
 
+    private static final String HUGE_SCRIPT_SEPARATOR = "\n------------------------------------------\n";
     private static final String SCRIPT_SEPARATOR = "\n---------------------\n";
     private static final String SMALL_SCRIPT_SEPARATOR = "---------------------\n";
 
@@ -25,7 +26,7 @@ public class Generator {
     private static final int COUNT_OF_PUBLICATION = 20;
 
     public static ArrayList<Case> cases = new ArrayList<>();
-    public static ArrayList<Champioship> championships = new ArrayList<>();
+    public static ArrayList<Championship> championships = new ArrayList<>();
     public static ArrayList<Email> emails = new ArrayList<>();
     public static ArrayList<Judge> judges = new ArrayList<>();
     public static ArrayList<JudgeTeam> judgeTeams = new ArrayList<>();
@@ -43,6 +44,8 @@ public class Generator {
     private static Set<Integer> judges_id = new HashSet<>();
     private static Set<Integer> mentors_id = new HashSet<>();
     private static Set<Integer> participants_id = new HashSet<>();
+    private static Set<Integer> used_judges_id = new HashSet<>();
+    private static Set<Integer> used_participants_id = new HashSet<>();
 
     public static void main(String[] args) throws FileNotFoundException {
         PrintWriter out = new PrintWriter(new File("test.sql"));
@@ -91,10 +94,10 @@ public class Generator {
             peopleWithPublication.addAll(authors);
         }
 
-        addScript(SCRIPT_SEPARATOR);
-
         //generate championships
         for (int iter = 0; iter < COUNT_OF_CHAMPIONSHIPS; iter++) {
+            addScript(HUGE_SCRIPT_SEPARATOR);
+
             int cntCases = random.nextInt(8) + 3;
 
             Set<Integer> cases = new HashSet<>();
@@ -109,7 +112,7 @@ public class Generator {
                 platforms.add(selectRandomPlatform().platform_id);
             }
 
-            Champioship champioship = Champioship.generate(
+            Championship championship = Championship.generate(
                     new ArrayList<>(cases),
                     new ArrayList<>(platforms)
             );
@@ -127,12 +130,15 @@ public class Generator {
             mentors_id = new HashSet<>();
             participants_id = new HashSet<>();
 
+            used_judges_id = new HashSet<>();
+            used_participants_id = new HashSet<>();
+
             //generate judges
             int curCountOfJudges = COUNT_OF_JUDGES + 3 * (random.nextInt(3) - 1);
             while (judges.size() < curCountOfJudges) {
                 int person_id = selectRandomPersonWithPublication();
                 judges_id.add(person_id);
-                Judge.generate(person_id, champioship.championship_id);
+                Judge.generate(person_id, championship.championship_id);
             }
 
             addScript(SMALL_SCRIPT_SEPARATOR);
@@ -142,7 +148,7 @@ public class Generator {
             while (mentors.size() < curCountOfMentors) {
                 int person_id = selectRandomPersonWithPublication();
                 mentors_id.add(person_id);
-                Mentor.generate(person_id, champioship.championship_id);
+                Mentor.generate(person_id, championship.championship_id);
             }
 
             addScript(SMALL_SCRIPT_SEPARATOR);
@@ -152,12 +158,31 @@ public class Generator {
             while (participants.size() < curCountOfParticipants) {
                 int person_id = selectRandomPersonWithoutPublication();
                 participants_id.add(person_id);
-                Participant.generate(person_id, champioship.championship_id);
+                Participant.generate(person_id, championship.championship_id);
             }
 
             addScript(SMALL_SCRIPT_SEPARATOR);
 
-            //team
+            //generate teams
+            while (participants_id.size() - used_participants_id.size() > 2) {
+                int teamSize = random.nextInt(4) + 2;
+                Set<Integer> teammates = new HashSet<>();
+                while (teammates.size() < teamSize) {
+                    int curParticipant = selectRandomParticipant();
+                    teammates.add(curParticipant);
+                    used_participants_id.add(curParticipant);
+                }
+
+                int mentorsSize = random.nextInt(3);
+                Set<Integer> curMentors = new HashSet<>();
+                while (curMentors.size() < mentorsSize) {
+                    int curMentor = selectRandomMentor();
+                    curMentors.add(curMentor);
+                }
+
+                Team.generate(new ArrayList<>(teammates), new ArrayList<>(curMentors), championship.championship_id);
+            }
+
             //project
 
             //judgeTeam
@@ -171,8 +196,6 @@ public class Generator {
             //endChampionship
 
             //TODO
-
-            addScript(SCRIPT_SEPARATOR);
         }
 
         out.println(builder);
@@ -225,6 +248,38 @@ public class Generator {
 
     private static Platform selectRandomPlatform() {
         return platforms.get(random.nextInt(platforms.size()));
+    }
+
+    private static int selectRandomParticipant() {
+        while (true) {
+            int size = participants_id.size();
+            int item = random.nextInt(size);
+            int i = 0;
+
+            for (int obj : participants_id) {
+                if (i == item && !used_participants_id.contains(obj)) {
+                    return obj;
+                }
+
+                i++;
+            }
+        }
+    }
+
+    private static int selectRandomMentor() {
+        while (true) {
+            int size = mentors_id.size();
+            int item = random.nextInt(size);
+            int i = 0;
+
+            for (int obj : mentors_id) {
+                if (i == item) {
+                    return obj;
+                }
+
+                i++;
+            }
+        }
     }
 
     private static int selectRandomPersonWithPublication() {

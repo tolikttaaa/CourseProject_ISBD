@@ -9,9 +9,9 @@ import java.util.Set;
 public class Platform {
     private static int cnt = 1;
 
-    private static Set<String> PLATFORM_NAMES = new HashSet<>(Arrays.asList("Tuvalu", "CKiribati", "Marshall Islands",
-            "Montserrat", "Niue", "American Samoa", "Solomon Islands", "Comoros", "Federated States of Micronesia",
-            "Djibouti", "Sierra Leone", "Guinea", "Tonga", "Anguilla", "Timor Leste",
+    private static final Set<String> PLATFORM_NAMES = new HashSet<>(Arrays.asList("Tuvalu", "CKiribati",
+            "Marshall Islands", "Montserrat", "Niue", "American Samoa", "Solomon Islands", "Comoros",
+            "Federated States of Micronesia", "Djibouti", "Sierra Leone", "Guinea", "Tonga", "Anguilla", "Timor Leste",
             "St. Vincent and the Grenadines", "San Marino", "Dominica", "Liechtenstein", "Vanuatu",
             "St. Kitts and Nevis", "New Caledonia", "Eritrea", "Moldova", "Haiku Stairs", "Enchanting River",
             "Crooked Forest", "Hitachi Seaside Park", "Pangong Tso Lake", "Apostle Islands", "Salar de Uyuni",
