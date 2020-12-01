@@ -15,7 +15,7 @@ public class Generator {
 
     private static final String HUGE_SCRIPT_SEPARATOR = "\n------------------------------------------\n";
     private static final String SCRIPT_SEPARATOR = "\n---------------------\n";
-    private static final String SMALL_SCRIPT_SEPARATOR = "---------------------\n";
+    private static final String SMALL_SCRIPT_SEPARATOR = "---------------------";
 
     private static final int COUNT_OF_PEOPLE = 1000;
     private static final int COUNT_OF_PARTICIPANTS = 300;
@@ -189,9 +189,32 @@ public class Generator {
                 Team.generate(new ArrayList<>(teammates), new ArrayList<>(curMentors), championship.championship_id);
             }
 
-            //project
+            addScript(SMALL_SCRIPT_SEPARATOR);
 
-            //judgeTeam
+            //generate judgeTeams
+            while (judges_id.size() != used_judges_id.size()) {
+                Set<Integer> curJudges = new HashSet<>();
+                while (curJudges.size() < 3) {
+                    int curJudge = selectRandomJudge();
+                    curJudges.add(curJudge);
+                    used_judges_id.add(curJudge);
+                }
+
+                JudgeTeam.generate(new ArrayList<>(curJudges), championship.championship_id);
+            }
+
+            addScript(SMALL_SCRIPT_SEPARATOR);
+
+            //generate projects
+            for (Team team : teams) {
+                Project.generate(team.team_id, getRandomSublist(championship.cases));
+
+                while (random.nextInt(10) > 6) {
+                    Project.generate(team.team_id, getRandomSublist(championship.cases));
+                }
+            }
+
+            addScript(SMALL_SCRIPT_SEPARATOR);
 
             //performance
 
@@ -288,6 +311,22 @@ public class Generator {
         }
     }
 
+    private static int selectRandomJudge() {
+        while (true) {
+            int size = judges_id.size();
+            int item = random.nextInt(size);
+            int i = 0;
+
+            for (int obj : judges_id) {
+                if (i == item && !used_judges_id.contains(obj)) {
+                    return obj;
+                }
+
+                i++;
+            }
+        }
+    }
+
     private static int selectRandomPersonWithPublication() {
         while (true) {
             int size = peopleWithPublication.size();
@@ -335,5 +374,19 @@ public class Generator {
         } else {
             return 0;
         }
+    }
+
+    public static <T> ArrayList<T> getRandomSublist(ArrayList<T> input) {
+        ArrayList<T> result = new ArrayList<>();
+
+        while (result.isEmpty()) {
+            for (T element : input) {
+                if (random.nextInt(10) > 3) {
+                    result.add(element);
+                }
+            }
+        }
+
+        return result;
     }
 }
