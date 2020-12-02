@@ -1,10 +1,8 @@
 package generator.objects;
 
 import generator.Generator;
-import sun.misc.Perf;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class Performance {
     private static int cnt = 1;
