@@ -270,20 +270,20 @@
 Эти операции, а также проверки целостности данных реализованы при помощи функций.
 
 **Функции**:
-* <a href="appendix/add_case_to_championship.md">`add_case_to_championship`</a> - функция позволяет осуществлять добавление информации о кейсах, представленных в чемпионате;
-* <a href="appendix/add_mentor_to_team.md">`add_mentor_to_team`</a> - функция позволяет осуществлять добавление ментора к команде;
-* <a href="appendix/add_mentor_to_team.md">`add_publication`</a> - функция позволяет осуществлять добавление связи между авторами и публикацией;
-* <a href="appendix/end_championship.md">`end_championship`</a> -функция позволяет осуществлять завершение чемпионата;
-* <a href="appendix/end_championship.md">`insert_championship`</a> - функция позволяет осуществлять добавление информации о чемпионате;
-* <a href="appendix/insert_judge_team.md">`insert_judge_team`</a> - функция позволяет осуществлять добавление информации о судейской бригаде;
-* <a href="appendix/insert_person.md">`insert_person`</a> - функция позволяет осуществлять добавление человека;
-* <a href="appendix/insert_project.md">`insert_project`</a> - функция позволяет осуществлять добавление информации о проекте;
-* <a href="appendix/insert_pblication.md">`insert_publication`</a> - функция позволяет осуществлять добавление информации о публикации;
-* <a href="appendix/insert_pblication_with_authors.md">`insert_publication_with_authors`</a> - функция позволяет осуществлять добавление публикации уже связанной с её авторами;
-* <a href="appendix/insert_team.md">`insert_team`</a> - функция позволяет осуществлять добавление команды без связи с ментором;
-* <a href="appendix/insert_team_with_mentor.md">`insert_team_with_mentor`</a> - функция позволяет осуществлять добавление команды вместе со связью с ментором;
-* <a href="appendix/rate_performance.md">`rate_performance`</a> - функция позволяет осуществлять оценивание выступления команды; 
-* <a href="appendix/start_championship.md">`start_championship` </a> - функция позволяет осуществлять добавление нового чемпионата.
+* <a href="docs/add_case_to_championship.md">`add_case_to_championship`</a> - функция позволяет осуществлять добавление информации о кейсах, представленных в чемпионате;
+* <a href="docs/add_mentor_to_team.md">`add_mentor_to_team`</a> - функция позволяет осуществлять добавление ментора к команде;
+* <a href="docs/add_mentor_to_team.md">`add_publication`</a> - функция позволяет осуществлять добавление связи между авторами и публикацией;
+* <a href="docs/end_championship.md">`end_championship`</a> -функция позволяет осуществлять завершение чемпионата;
+* <a href="docs/end_championship.md">`insert_championship`</a> - функция позволяет осуществлять добавление информации о чемпионате;
+* <a href="docs/insert_judge_team.md">`insert_judge_team`</a> - функция позволяет осуществлять добавление информации о судейской бригаде;
+* <a href="docs/insert_person.md">`insert_person`</a> - функция позволяет осуществлять добавление человека;
+* <a href="docs/insert_project.md">`insert_project`</a> - функция позволяет осуществлять добавление информации о проекте;
+* <a href="docs/insert_pblication.md">`insert_publication`</a> - функция позволяет осуществлять добавление информации о публикации;
+* <a href="docs/insert_pblication_with_authors.md">`insert_publication_with_authors`</a> - функция позволяет осуществлять добавление публикации уже связанной с её авторами;
+* <a href="docs/insert_team.md">`insert_team`</a> - функция позволяет осуществлять добавление команды без связи с ментором;
+* <a href="docs/insert_team_with_mentor.md">`insert_team_with_mentor`</a> - функция позволяет осуществлять добавление команды вместе со связью с ментором;
+* <a href="docs/rate_performance.md">`rate_performance`</a> - функция позволяет осуществлять оценивание выступления команды; 
+* <a href="docs/start_championship.md">`start_championship` </a> - функция позволяет осуществлять добавление нового чемпионата.
 
 **Функции проверки комплексных ограничений целостности данных**:
 * `check_cases` - функция обеспечивает проверку факта наличия хотя бы одного кейса в конкретном чемпионате;
@@ -314,13 +314,13 @@ PostgreSQL автоматически создает hash-индексы для 
 
 **Индексы**:
 
-* <a href="appendix/appendix_c.md">`b_date_btree_index`</a> - btree индекс на атрибут `birth_date` таблицы `people`, позволяющий ускорить операции сравнения; 
-* <a href="appendix/appendix_g.md">`f_score_btree_index`</a> - btree индекс на атрибут `begin_date` таблицы `championship`, позволяющий ускорить операции сравнения;
-* <a href="appendix/appendix_g.md">`f_score_hash_index`</a> - hash индекс на атрибут `final_score` таблицы `score`, позволяющий ускорить операции сравнения;
-* <a href="appendix/appendix_b.md">`l_name_btree_index`</a> - btree индекс на атрибут `last_name` таблицы `people`, позволяющий ускорить операции сравнения;
-* <a href="appendix/appendix_a.md">`l_name_hash_index`</a> - hash индекс на атрибут `last_name` таблицы `people`, позволяющий ускорить операции сравнения;
-* <a href="appendix/appendix_h.md">`performance_time_index`</a> - btree индекс на атрибут `performance_time` таблицы `performanse`, позволяющий ускорить операции сравнения;
-* <a href="appendix/appendix_f.md">`place_index`</a> _ btree индекс на атрибут `place` таблицы `score`, позволяющий ускорить операции сравнения.
-* <a href="appendix/appendix_d.md">`p_name_index`</a> _ btree индекс на атрибут `name` таблицы `project`, позволяющий ускорить операции сравнения.
-* <a href="appendix/appendix_e.md">`t_name_index`</a> _ btree индекс на атрибут `name` таблицы `team`, позволяющий ускорить операции сравнения.
+* <a href="docs/birth_date_btree_index.md">`birth_date_btree_index`</a> - btree индекс на атрибут `birth_date` таблицы `people`, позволяющий ускорить операции сравнения; 
+* <a href="docs/final_score_indexes.md">`final_score_btree_index`</a> - btree индекс на атрибут `begin_date` таблицы `championship`, позволяющий ускорить операции сравнения;
+* <a href="docs/final_score_indexes.md">`final_score_hash_index`</a> - hash индекс на атрибут `final_score` таблицы `score`, позволяющий ускорить операции сравнения;
+* <a href="docs/last_name_btree_index.md">`last_name_btree_index`</a> - btree индекс на атрибут `last_name` таблицы `people`, позволяющий ускорить операции сравнения;
+* <a href="docs/last_name_hash_index.md">`last_name_hash_index`</a> - hash индекс на атрибут `last_name` таблицы `people`, позволяющий ускорить операции сравнения;
+* <a href="docs/performance_time_index.md">`performance_time_index`</a> - btree индекс на атрибут `performance_time` таблицы `performanse`, позволяющий ускорить операции сравнения;
+* <a href="docs/place_index.md">`place_index`</a> _ btree индекс на атрибут `place` таблицы `score`, позволяющий ускорить операции сравнения.
+* <a href="docs/project_name_index.md">`project_name_index`</a> _ btree индекс на атрибут `name` таблицы `project`, позволяющий ускорить операции сравнения.
+* <a href="docs/team_name_index.md">`team_name_index`</a> _ btree индекс на атрибут `name` таблицы `team`, позволяющий ускорить операции сравнения.
 

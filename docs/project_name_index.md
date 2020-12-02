@@ -27,14 +27,14 @@ Execution time: 0.297 ms
 
 #### Создание индекса
 ```SQL
-CREATE INDEX "p_name_index" ON project USING hash ("name");
+CREATE INDEX "project_name_index" ON project USING hash ("name");
 ```
 
 #### План выполнения запроса с использованием индекса
 
 ```
 Nested Loop  (cost=0.27..16.32 rows=1 width=9) (actual time=0.039..0.041 rows=1 loops=1)
-  ->  Index Scan using p_name_index on project p  (cost=0.00..8.02 rows=1 width=4) (actual time=0.033..0.034 rows=1 loops=1)
+  ->  Index Scan using project_name_index on project p  (cost=0.00..8.02 rows=1 width=4) (actual time=0.033..0.034 rows=1 loops=1)
         Index Cond: (name = 'Project 1'::text)
   ->  Index Scan using team_pkey on team  (cost=0.27..8.29 rows=1 width=13) (actual time=0.003..0.003 rows=1 loops=1)
         Index Cond: (team_id = p.team_id)

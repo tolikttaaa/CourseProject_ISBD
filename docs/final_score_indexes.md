@@ -36,7 +36,7 @@ Execution time: 0.557 ms
 
 #### Создание индекса
 ```SQL
-CREATE INDEX "f_score_hash_index" ON score USING btree ("final_score");
+CREATE INDEX "final_score_hash_index" ON score USING btree ("final_score");
 ```
 
 #### План выполнения запроса с использованием индекса
@@ -53,7 +53,7 @@ Nested Loop  (cost=9.58..26.04 rows=1 width=9) (actual time=0.072..0.147 rows=2 
               ->  Bitmap Heap Scan on score  (cost=4.04..9.37 rows=5 width=4) (actual time=0.017..0.021 rows=5 loops=1)
                     Recheck Cond: (final_score = '1'::double precision)
                     Heap Blocks: exact=3
-                    ->  Bitmap Index Scan on f_score_hash_index  (cost=0.00..4.04 rows=5 width=0) (actual time=0.012..0.012 rows=5 loops=1)
+                    ->  Bitmap Index Scan on final_score_hash_index  (cost=0.00..4.04 rows=5 width=0) (actual time=0.012..0.012 rows=5 loops=1)
                           Index Cond: (final_score = '1'::double precision)
   ->  Index Only Scan using championship_pkey on championship c  (cost=0.15..8.17 rows=1 width=4) (actual time=0.003..0.004 rows=1 loops=2)
         Index Cond: (championship_id = 1)
@@ -103,7 +103,7 @@ Execution time: 1.248 ms
 
 #### Создание индекса
 ```SQL
-CREATE INDEX "f_score_btree_index" ON score USING btree ("final_score");
+CREATE INDEX "final_score_btree_index" ON score USING btree ("final_score");
 ```
 
 #### План выполнения запроса с использованием индекса
@@ -114,7 +114,7 @@ Nested Loop  (cost=9.03..25.49 rows=1 width=9) (actual time=0.181..0.181 rows=0 
     ->  Result  (cost=0.33..0.34 rows=1 width=4) (actual time=0.058..0.059 rows=1 loops=1)
           InitPlan 1 (returns $0)
             ->  Limit  (cost=0.27..0.33 rows=1 width=4) (actual time=0.056..0.056 rows=1 loops=1)
-                  ->  Index Only Scan Backward using f_score_btree_index on score score_1  (cost=0.27..23.43 rows=409 width=4) (actual time=0.054..0.054 rows=1 loops=1)
+                  ->  Index Only Scan Backward using final_score_btree_index on score score_1  (cost=0.27..23.43 rows=409 width=4) (actual time=0.054..0.054 rows=1 loops=1)
                         Index Cond: (final_score IS NOT NULL)
                         Heap Fetches: 0
   ->  Hash Join  (cost=8.54..16.97 rows=1 width=13) (actual time=0.181..0.181 rows=0 loops=1)
@@ -127,7 +127,7 @@ Nested Loop  (cost=9.03..25.49 rows=1 width=9) (actual time=0.181..0.181 rows=0 
               ->  Bitmap Heap Scan on score  (cost=4.29..8.52 rows=2 width=4) (actual time=0.067..0.067 rows=1 loops=1)
                     Recheck Cond: (final_score = $1)
                     Heap Blocks: exact=1
-                    ->  Bitmap Index Scan on f_score_btree_index  (cost=0.00..4.29 rows=2 width=0) (actual time=0.063..0.063 rows=1 loops=1)
+                    ->  Bitmap Index Scan on final_score_btree_index  (cost=0.00..4.29 rows=2 width=0) (actual time=0.063..0.063 rows=1 loops=1)
                           Index Cond: (final_score = $1)
   ->  Index Only Scan using championship_pkey on championship c  (cost=0.15..8.17 rows=1 width=4) (never executed)
         Index Cond: (championship_id = 1)

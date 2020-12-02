@@ -13,25 +13,25 @@ where last_name = 'Williams';
 #### План выполнения запроса без использования индекса
 
 ```
-Sort  (cost=69.65..72.26 rows=1042 width=17) (actual time=0.869..1.160 rows=1042 loops=1)
-  Sort Key: birth_date
+Sort  (cost=69.65..72.26 rows=1042 width=17) (actual time=1.447..1.748 rows=1042 loops=1)
+  Sort Key: last_name
   Sort Method: quicksort  Memory: 121kB
-  ->  Seq Scan on people  (cost=0.00..17.42 rows=1042 width=17) (actual time=0.010..0.375 rows=1042 loops=1)
-Planning time: 0.087 ms
-Execution time: 1.417 ms
+  ->  Seq Scan on people  (cost=0.00..17.42 rows=1042 width=17) (actual time=0.010..0.395 rows=1042 loops=1)
+Planning time: 0.103 ms
+Execution time: 1.992 ms
 ```
 
 #### Создание индекса
 ```SQL
-CREATE INDEX "b_date_btree_index" ON people USING hash ("last_name");
+CREATE INDEX "last_name_btree_index" ON people USING hash ("last_name");
 ```
 
 #### План выполнения запроса с использованием индекса
 
 ```
-Index Scan using b_date_btree_index on people  (cost=0.28..63.83 rows=1042 width=17) (actual time=0.017..0.672 rows=1042 loops=1)
-Planning time: 0.070 ms
-Execution time: 0.949 ms
+Index Scan using last_name_btree_index on people  (cost=0.28..67.90 rows=1042 width=17) (actual time=0.018..0.569 rows=1042 loops=1)
+Planning time: 0.068 ms
+Execution time: 0.848 ms
 ```
 
 #### Вывод

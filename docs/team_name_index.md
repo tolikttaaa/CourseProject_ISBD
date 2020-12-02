@@ -28,7 +28,7 @@ Execution time: 0.523 ms
 
 #### Создание индекса
 ```SQL
-CREATE INDEX "t_name_index" ON team USING hash ("name");
+CREATE INDEX "team_name_index" ON team USING hash ("name");
 ```
 
 #### План выполнения запроса с использованием индекса
@@ -39,7 +39,7 @@ Hash Join  (cost=8.03..21.13 rows=1 width=11) (actual time=0.029..0.346 rows=1 l
   ->  Seq Scan on project  (cost=0.00..11.16 rows=516 width=15) (actual time=0.009..0.162 rows=516 loops=1)
   ->  Hash  (cost=8.02..8.02 rows=1 width=4) (actual time=0.014..0.014 rows=1 loops=1)
         Buckets: 1024  Batches: 1  Memory Usage: 9kB
-        ->  Index Scan using t_name_index on team  (cost=0.00..8.02 rows=1 width=4) (actual time=0.011..0.012 rows=1 loops=1)
+        ->  Index Scan using team_name_index on team  (cost=0.00..8.02 rows=1 width=4) (actual time=0.011..0.012 rows=1 loops=1)
               Index Cond: (name = 'Blaze'::text)
 Planning time: 0.175 ms
 Execution time: 0.367 ms
