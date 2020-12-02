@@ -314,13 +314,13 @@ PostgreSQL автоматически создает hash-индексы для 
 
 **Индексы**:
 
-* <a href="appendix/appendix_c">`b_date_btree_index`</a> - btree индекс на атрибут `birth_date` таблицы `people`, позволяющий ускорить операции сравнения; 
-* <a href="appendix/appendix_g">`f_score_btree_index`</a> - btree индекс на атрибут `begin_date` таблицы `championship`, позволяющий ускорить операции сравнения;
-* <a href="appendix/appendix_g">`f_score_hash_index`</a> - hash индекс на атрибут `final_score` таблицы `score`, позволяющий ускорить операции сравнения;
-* <a href="appendix/appendix_b">`l_name_btree_index`</a> - btree индекс на атрибут `last_name` таблицы `people`, позволяющий ускорить операции сравнения;
-* <a href="appendix/appendix_a">`l_name_hash_index`</a> - hash индекс на атрибут `last_name` таблицы `people`, позволяющий ускорить операции сравнения;
-* <a href="appendix/appendix_h">`performance_time_index`</a> - btree индекс на атрибут `performance_time` таблицы `performanse`, позволяющий ускорить операции сравнения;
-* <a href="appendix/appendix_f">`place_index`</a> _ btree индекс на атрибут `place` таблицы `score`, позволяющий ускорить операции сравнения.
-* <a href="appendix/appendix_d">`p_name_index`</a> _ btree индекс на атрибут `name` таблицы `project`, позволяющий ускорить операции сравнения.
-* <a href="appendix/appendix_e">`t_name_index`</a> _ btree индекс на атрибут `name` таблицы `team`, позволяющий ускорить операции сравнения.
+* <a href="appendix/appendix_c.md">`b_date_btree_index`</a> - btree индекс на атрибут `birth_date` таблицы `people`, позволяющий ускорить операции сравнения; 
+* <a href="appendix/appendix_g.md">`f_score_btree_index`</a> - btree индекс на атрибут `begin_date` таблицы `championship`, позволяющий ускорить операции сравнения;
+* <a href="appendix/appendix_g.md">`f_score_hash_index`</a> - hash индекс на атрибут `final_score` таблицы `score`, позволяющий ускорить операции сравнения;
+* <a href="appendix/appendix_b.md">`l_name_btree_index`</a> - btree индекс на атрибут `last_name` таблицы `people`, позволяющий ускорить операции сравнения;
+* <a href="appendix/appendix_a.md">`l_name_hash_index`</a> - hash индекс на атрибут `last_name` таблицы `people`, позволяющий ускорить операции сравнения;
+* <a href="appendix/appendix_h.md">`performance_time_index`</a> - btree индекс на атрибут `performance_time` таблицы `performanse`, позволяющий ускорить операции сравнения;
+* <a href="appendix/appendix_f.md">`place_index`</a> _ btree индекс на атрибут `place` таблицы `score`, позволяющий ускорить операции сравнения.
+* <a href="appendix/appendix_d.md">`p_name_index`</a> _ btree индекс на атрибут `name` таблицы `project`, позволяющий ускорить операции сравнения.
+* <a href="appendix/appendix_e.md">`t_name_index`</a> _ btree индекс на атрибут `name` таблицы `team`, позволяющий ускорить операции сравнения.
 
