@@ -178,11 +178,7 @@ DECLARE
 BEGIN
     SELECT NEXTVAL('people_person_id_seq') INTO person;
 
-    INSERT INTO people (person_id, first_name, last_name, birth_date)
-    VALUES (person, insert_participant.first_name, insert_participant.last_name, insert_participant.birth_date);
-
-    INSERT INTO email (email, person_id) VALUES (insert_participant.email_address, person);
-    INSERT INTO phone (phone_number, person_id) VALUES (insert_participant.phone_number, person);
+    SELECT insert_person(first_name, last_name, birth_date, phone_number, email_address);
 
     INSERT INTO participant (person_id, championship_id)
     VALUES (person, insert_participant.championship_id);
