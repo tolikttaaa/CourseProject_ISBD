@@ -2,7 +2,6 @@ package generator;
 
 import generator.objects.*;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
@@ -49,7 +48,7 @@ public class Generator {
     private static Set<Integer> used_participants_id = new HashSet<>();
 
     public static void main(String[] args) throws FileNotFoundException {
-        PrintWriter out = new PrintWriter(new File("test.sql"));
+        PrintWriter out = new PrintWriter("test.sql");
 
         //generate random people
         for (int iter = 0; iter < COUNT_OF_MENTORS + COUNT_OF_JUDGES; iter++) {
@@ -65,7 +64,7 @@ public class Generator {
 
         //generate platforms
         for (int iter = 0; iter < COUNT_OF_PLATFORMS; iter++) {
-            Person randomPerson = selectRandomPerson();
+            Person randomPerson = getRandomElement(people);
 
             while (random.nextInt(10) > 3) {
                 Phone.generate(randomPerson.person_id);
@@ -108,19 +107,19 @@ public class Generator {
 
             Set<Integer> curCases = new HashSet<>();
             while (curCases.size() < cntCases) {
-                curCases.add(selectRandomCase().case_id);
+                curCases.add(getRandomElement(cases).case_id);
             }
 
             int cntPlatforms = random.nextInt(5) + 2;
 
-            Set<Integer> platforms = new HashSet<>();
-            while (platforms.size() < cntPlatforms) {
-                platforms.add(selectRandomPlatform().platform_id);
+            Set<Integer> curPlatforms = new HashSet<>();
+            while (curPlatforms.size() < cntPlatforms) {
+                curPlatforms.add(getRandomElement(platforms).platform_id);
             }
 
             Championship championship = Championship.generate(
                     new ArrayList<>(curCases),
-                    new ArrayList<>(platforms)
+                    new ArrayList<>(curPlatforms)
             );
 
             addScript(SMALL_SCRIPT_SEPARATOR);
@@ -129,6 +128,7 @@ public class Generator {
             judgeTeams = new ArrayList<>();
             mentors = new ArrayList<>();
             participants = new ArrayList<>();
+            projects = new ArrayList<>();
             performances = new ArrayList<>();
             teams = new ArrayList<>();
 
@@ -247,6 +247,7 @@ public class Generator {
                     projectCases = new ArrayList<>();
                     System.err.println("ERROR_BD_ERROR");
                 }
+
                 int maxPoints = cases.stream()
                         .filter(curCase -> projectCases.contains(curCase.case_id))
                         .mapToInt(curCase -> curCase.complexity).sum();
@@ -300,18 +301,6 @@ public class Generator {
         res.append('}');
 
         return res.toString();
-    }
-
-    private static Person selectRandomPerson() {
-        return people.get(random.nextInt(people.size()));
-    }
-
-    private static Case selectRandomCase() {
-        return cases.get(random.nextInt(cases.size()));
-    }
-
-    private static Platform selectRandomPlatform() {
-        return platforms.get(random.nextInt(platforms.size()));
     }
 
     private static int selectRandomParticipant() {

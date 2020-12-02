@@ -415,6 +415,9 @@ $$ LANGUAGE plpgSQL;
 CREATE OR REPLACE FUNCTION rate_performance(performance_id integer, points real) RETURNS VOID AS
 $$
 BEGIN
+    IF (SELECT count(*) FROM performance WHERE performance.performance_id = rate_performance.performance_id) = 0 THEN
+        RAISE EXCEPTION 'That performance does not exist!';
+    END IF;
     IF (SELECT championship.begin_date FROM performance
         JOIN project ON performance.project_id = project.project_id
         JOIN team ON team.team_id = project.team_id
@@ -850,7 +853,7 @@ $checkPerformance$
 DECLARE
     championship_number integer;
 BEGIN
-    SELECT team.championship_id INTO championship_number FROM project JOIN team ON team.team_id = project.team_id WHERE project_id = NEW.project_id;
+    SELECT team.championship_id INTO championship_number FROM project JOIN team ON team.team_id = project.team_id WHERE project.project_id = NEW.project_id;
 
     IF NOT EXISTS(SELECT * FROM championship_platform WHERE platform_id = NEW.platform_id AND championship_id = championship_number) THEN
         RAISE EXCEPTION 'Platform should be available for this championship.';
