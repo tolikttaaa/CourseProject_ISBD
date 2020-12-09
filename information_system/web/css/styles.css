@@ -1,0 +1,222 @@
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.topnav {
+    color: #f2f2f2;
+    overflow: hidden;
+    background-color: #333;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.topnav a {
+    float: left;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.topnav a:hover {
+    background-color: white;
+    color: black;
+}
+
+.topnav a.active {
+    background-color: deeppink;
+    color: white;
+}
+
+.left, .right {
+    float: left;
+    width: 50%;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
+.right {
+    text-align: right;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.foot {
+    overflow: hidden;
+    background-color: #333;
+    color: #f2f2f2;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.foot a {
+    float: left;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.reg_text {
+    color: gray;
+    font-family: Arial, Helvetica, sans-serif;
+    float: left;
+    text-decoration: none;
+    font-size: 20px;
+    margin-left: 30px;
+    text-align: left;
+}
+
+.reg_text_in_form {
+    color: gray;
+    font-family: Arial, Helvetica, sans-serif;
+    text-decoration: none;
+    font-size: 20px;
+    /*margin-left: 30px;*/
+    text-align: left;
+}
+
+.subtitle_form {
+    color: black;
+    font-family: Arial, Helvetica, sans-serif;
+    text-decoration: none;
+    font-size: 25px;
+    /*margin-left: 40px;*/
+}
+
+.title {
+    color: deeppink;
+    font-family: Arial, Helvetica, sans-serif;
+    float: left;
+    text-align: center;
+    text-decoration: none;
+    font-size: 40px;
+    margin-left: 40px;
+}
+
+.subtitle {
+    color: black;
+    font-family: Arial, Helvetica, sans-serif;
+    float: left;
+    text-decoration: none;
+    font-size: 25px;
+    margin-left: 40px;
+    margin-right: 40px;
+}
+
+.quote {
+    color: deeppink;
+    font-family: Arial, Helvetica, sans-serif;
+    float: left;
+    text-decoration: none;
+    font-size: 20px;
+    margin-left: 30px;
+}
+
+.picture {
+    margin: 20px 20px 20px 30px;
+}
+.picture img {
+    vertical-align: middle;
+}
+
+.invisible {
+    display: none;
+}
+
+@media (max-width: 1080px) {
+    .container {
+        width: 700px;
+    }
+
+}
+
+@media (max-width: 720px) {
+    .container {
+        width: 550px;
+    }
+
+}
+
+button {
+    text-align: center;
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+    font-size: large;
+    margin: 2rem;
+    align-items: center;
+}
+
+button:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .3);
+    align-items: center;
+}
+
+button:active {
+    background: rgb(240, 240, 240);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, .4);
+    align-items: center;
+}
+
+.region {
+    border-radius: 10px;
+    border: 1px outset #999975;
+    margin: 0;
+}
+
+section {
+    font-family: Arial, Helvetica, monospace;
+    margin: 0;
+    left: 0;
+    top: 0;
+}
+
+.control-points {
+    background-color: #fcf6f6;
+    margin-top: 10px;
+    border: 1px outset #d6d6b1;
+    border-radius: 5px;
+}
+
+.content-container {
+    display: flex;
+    padding-top: 100px;
+    /*flex-direction: row-reverse;*/
+
+}
+
+.block {
+    background: radial-gradient(circle, white, #DDD7D7);
+    margin: 15px;
+    padding: 10px;
+    width: auto;
+    /*align-items: center;*/
+    box-shadow: 0.4em 0.4em 5px rgba(122, 122, 122, 0.5);
+}
+
+#input_personal_info, #text_input {
+    background: radial-gradient(ellipse, white, #DDD7D7);
+    font-family: Arial, Helvetica, sans-serif;
+    text-decoration: none;
+    font-size: 20px;
+    margin-left: 30px;
+    align-items: center;
+
+}
+
+.container {
+    flex-direction: row;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+.content-container {
+    display: flex;
+    padding-top: 100px;
+    flex-direction: row-reverse;
+}
+
