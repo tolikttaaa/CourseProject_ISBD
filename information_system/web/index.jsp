@@ -11,7 +11,6 @@
     <%@include file="navigation.jsp" %>
     <div class="topnav">
         <a class="active" href="./index.jsp">Home</a>
-        <a href="register_person.jsp">For All</a>
         <a href="./championships.jsp">Championships</a>
         <a href="./information_about_participant.jsp">Info</a>
         <a href="./results.jsp">Results</a>

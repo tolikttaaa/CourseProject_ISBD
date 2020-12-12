@@ -10,12 +10,8 @@
 <header>
     <%@include file="navigation.jsp" %>
     <div class="topnav">
-        <a href="./index.jsp">Home</a>
-        <a class="active" href="./register_person.jsp">For All</a>
-        <a href="./championships.jsp">Championships</a>
-        <a href="./information_about_participant.jsp">Info</a>
-        <a href="./results.jsp">Results</a>
-        <a href="./about_us.jsp">About Us</a>
+        <a class="active" href="./register_person.jsp">Sign up</a>
+        <a href="./login.jsp">Sign in</a>
     </div>
 </header>
 <body>
@@ -46,12 +42,17 @@
                 <p><input style="width: 690px" class="reg_text_in_form" id="email" type="text"
                           name="email" width="400px"><br></p>
             </div>
+
             <div>
                 <p class="reg_text_in_form"><label for="championship"> Championship number: </label></p>
                 <p><input style="width: 690px" class="reg_text_in_form" id="championship" type="text"
                           name="championship"><br></p>
             </div>
-
+            <div>
+                <p><input id="admin_role" type="checkbox"
+                          name="admin_role" width="400px" value="admin"> Apply as administrator
+                    <br></p>
+            </div>
             </div>
             <div class="block invisible" id="person-errors-area"
                  style="box-shadow: none; border: 2px solid crimson"></div>

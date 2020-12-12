@@ -122,9 +122,6 @@ body {
 .picture {
     margin: 20px 20px 20px 30px;
 }
-.picture img {
-    vertical-align: middle;
-}
 
 .invisible {
     display: none;

@@ -16,4 +16,8 @@
     </jsp-config>
 
 
+    <welcome-file-list>
+        <welcome-file>/register_person.jsp</welcome-file>
+    </welcome-file-list>
+
 </web-app>
