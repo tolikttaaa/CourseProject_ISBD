@@ -18,7 +18,7 @@
 
 <div class="left">
 <div class="content-container container">
-    <form method="post" action="control">
+    <form method="post" action="./InsertData">
         <div class="control-points block region">
             <p class="subtitle_form"> Registration</p>
 <div style="color: #808080; font-family: Arial, Helvetica, sans-serif">
@@ -44,8 +44,8 @@
             </div>
 
             <div>
-                <p class="reg_text_in_form"><label for="championship"> Championship number: </label></p>
-                <p><input style="width: 690px" class="reg_text_in_form" id="championship" type="text"
+                <p class="reg_text_in_form"><label for="birth_date"> Birth date: </label></p>
+                <p><input style="width: 690px" class="reg_text_in_form" id="birth_date" type="date"
                           name="championship"><br></p>
             </div>
             <div>
