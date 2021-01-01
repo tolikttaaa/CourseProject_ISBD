@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 // This class can be used to initialize the database connection
 public class DatabaseConnection {
-    protected static Connection initializeDatabase()
+    protected static Connection getConnection()
             throws SQLException, ClassNotFoundException
     {
         // Initialize all the information regarding

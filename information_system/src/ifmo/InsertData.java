@@ -27,7 +27,7 @@ public class InsertData extends HttpServlet {
         try {
 
             // Initialize the database
-            Connection con = DatabaseConnection.initializeDatabase();
+            Connection con = DatabaseConnection.getConnection();
 
             // Create a SQL query to insert data into demo table
             // demo table consists of two columns, so two '?' is used
