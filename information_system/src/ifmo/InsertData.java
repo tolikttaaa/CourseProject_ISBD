@@ -18,8 +18,6 @@ import ifmo.DatabaseConnection;
 
 @WebServlet("/InsertData")
 public class InsertData extends HttpServlet {
-    private static final long serialVersionUID = 1L;
-
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response)
             throws ServletException, IOException
@@ -32,27 +30,24 @@ public class InsertData extends HttpServlet {
             // Create a SQL query to insert data into demo table
             // demo table consists of two columns, so two '?' is used
             PreparedStatement st = con
-                    .prepareStatement("SELECT insert_person(?,?,?,?,?)");
+                    .prepareStatement("SELECT insert_person(?,?,?,?,?);");
 
-            st.setString(1, request.getParameter("text"));
-            st.setString(2, request.getParameter("text"));
-            st.setDate(3, Date.valueOf(request.getParameter("date")));
-            st.setString(4, request.getParameter("text"));
-            st.setString(5, request.getParameter("text"));
+            st.setString(1, request.getParameter("first_name"));
+            st.setString(2, request.getParameter("last_name"));
+            st.setDate(3, Date.valueOf(request.getParameter("birth_date")));
+            st.setString(4, request.getParameter("phone_number"));
+            st.setString(5, request.getParameter("email"));
 
             // Execute the insert command using executeUpdate()
             // to make changes in database
-            st.executeUpdate();
+            st.executeQuery();
 
             // Close all the connections
             st.close();
             con.close();
 
-            // Get a writer pointer
-            // to display the successful result
-            PrintWriter out = response.getWriter();
-            out.println("<html><body><b>Successfully Inserted"
-                    + "</b></body></html>");
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
+
         }
         catch (Exception e) {
             e.printStackTrace();

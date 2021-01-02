@@ -46,7 +46,7 @@
             <div>
                 <p class="reg_text_in_form"><label for="birth_date"> Birth date: </label></p>
                 <p><input style="width: 690px" class="reg_text_in_form" id="birth_date" type="date"
-                          name="championship"><br></p>
+                          name="birth_date"><br></p>
             </div>
             <div>
                 <p><input id="admin_role" type="checkbox"

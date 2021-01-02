@@ -3,7 +3,8 @@ CREATE TABLE people
     person_id  serial PRIMARY KEY,
     first_name text NOT NULL,
     last_name  text NOT NULL,
-    birth_date date NOT NULL CHECK (birth_date <= NOW())
+    birth_date date NOT NULL CHECK (birth_date <= NOW()),
+    role text
 );
 
 -- function that return age of the person by his ID
@@ -178,7 +179,7 @@ DECLARE
 BEGIN
     SELECT NEXTVAL('people_person_id_seq') INTO person;
 
-    SELECT insert_person(first_name, last_name, birth_date, phone_number, email_address);
+    SELECT insert_person(first_name, last_name, birth_date, phone_number, email_address, 'user');
 
     INSERT INTO participant (person_id, championship_id)
     VALUES (person, insert_participant.championship_id);
@@ -192,7 +193,8 @@ CREATE OR REPLACE FUNCTION insert_person(first_name text,
                                               last_name text,
                                               birth_date date,
                                               phone_number text,
-                                              email_address text) RETURNS integer AS
+                                              email_address text,
+                                              role text) RETURNS integer AS
 $$
 DECLARE
     person integer;
@@ -200,8 +202,8 @@ DECLARE
 BEGIN
     SELECT NEXTVAL('people_person_id_seq') INTO person;
 
-    INSERT INTO people (person_id, first_name, last_name, birth_date)
-    VALUES (person, insert_person.first_name, insert_person.last_name, insert_person.birth_date);
+    INSERT INTO people (person_id, first_name, last_name, birth_date, role)
+    VALUES (person, insert_person.first_name, insert_person.last_name, insert_person.birth_date, insert_person.role);
 
     INSERT INTO email (email, person_id) VALUES (insert_person.email_address, person);
     INSERT INTO phone (phone_number, person_id) VALUES (insert_person.phone_number, person);
