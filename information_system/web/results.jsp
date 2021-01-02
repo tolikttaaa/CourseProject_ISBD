@@ -18,7 +18,7 @@
 </header>
 <body>
 <div class="content-container container left" style="width: 700px; margin-left: 15px">
-    <form method="post" action="control">
+    <form method="post" action="./GetResults">
         <div class="control-points block region">
             <p class="subtitle_form"> Get results of championship</p>
 
@@ -50,22 +50,5 @@
         </div>
     </form>
 </div>
-<table align="right" class="block content" id = responsesTable style="margin-top: 110px; width: 700px" >
-    <tr><td>Place</td><td>Team name</td><td>Score</td><td>Award</td></tr>
-    <%--    <%--%>
-    <%--    ArrayList<Participant> list = (ArrayList)config.getServletContext().getAttribute("list");--%>
-    <%--   for(int i = 0; i < list.size(); i++) {--%>
-    <%--%>--%>
-    <tr>
-        <%--        <td><%=list.get(i).first_name%></td>--%>
-        <%--        <td><%=list.get(i).last_name%></td>--%>
-        <%--        <td><%=list.get(i).birth_date%></td>--%>
-
-    </tr>
-
-    <%--    <%--%>
-    <%--        }--%>
-    <%--    %>--%>
-</table>
 </body>
 </html>

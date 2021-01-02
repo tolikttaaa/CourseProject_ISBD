@@ -21,7 +21,7 @@
 <body>
 <div class="left">
             <div class="content-container container" style="width: 700px; margin-left: 15px">
-                <form method="post" action="control">
+                <form method="post" action="./StartChampionship">
                     <div class="control-points block region">
                         <p class="subtitle_form"> Start championship</p>
 
@@ -56,7 +56,7 @@
 </div>
 <div class="right">
             <div class="content-container container" style="width: 700px; margin-left: 15px">
-                <form method="post" action="control">
+                <form method="post" action="./FinishChampionship">
                     <div class="control-points block region" style="text-align: left">
                         <p class="subtitle_form">  End championship</p>
                         <p>
