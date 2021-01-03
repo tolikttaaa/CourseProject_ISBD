@@ -1,6 +1,7 @@
 package ifmo;
 
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -14,12 +15,29 @@ import java.sql.ResultSet;
 
 @WebServlet("/Login")
 public class Login extends HttpServlet {
+    private ServletConfig config;
+
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        this.config = config;
+    }
+
+    @Override
+    public void destroy() {
+    }
+
+    @Override
+    public ServletConfig getServletConfig() {
+        return config;
+    }
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             Connection con = DatabaseConnection.getConnection();
             PreparedStatement st = con.prepareStatement(
-                    "SELECT last_name FROM people " +
+                    "SELECT last_name, role FROM people " +
                             "JOIN email ON people.person_id = email.person_id " +
                             "WHERE email.email = ?");
             st.setString(1, request.getParameter("login"));
@@ -28,11 +46,13 @@ public class Login extends HttpServlet {
             rs.next();
 
             String curUserLastName = rs.getString("last_name");
+
             if (curUserLastName.equals(request.getParameter("password"))) {
                 HttpSession session = request.getSession(true);
-                session.setAttribute("currentSessionUser", request.getParameter("login"));
 
                 response.sendRedirect("index.jsp");
+                config.getServletContext().setAttribute("curUserRole", rs.getString("role"));
+
             } else {
                 request.getParameter("");
                 response.sendRedirect("login.jsp");
@@ -40,6 +60,7 @@ public class Login extends HttpServlet {
             st.close();
             con.close();
         } catch (Exception e) {
+            response.sendRedirect("login.jsp");
             e.printStackTrace();
         }
     }

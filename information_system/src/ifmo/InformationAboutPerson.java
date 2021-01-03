@@ -37,7 +37,14 @@ public class InformationAboutPerson extends HttpServlet {
         list = new ArrayList<Person>();
         config.getServletContext().setAttribute("list", list);
 
+
+
         try {
+            //if (request.getSession(true).getAttribute("currentUserRole") == null){
+            if (config.getServletContext().getAttribute("curUserRole") == null){
+                response.sendRedirect("index.jsp");
+            }
+            if (config.getServletContext().getAttribute("curUserRole").equals("admin")){
 
             Connection con = DatabaseConnection.getConnection();
 
@@ -56,8 +63,9 @@ public class InformationAboutPerson extends HttpServlet {
                 list.add(p);
             }
             response.sendRedirect("info_response.jsp");
+
             st.close();
-            con.close();
+            con.close(); }
         } catch (Exception e) {
             e.printStackTrace();
         }

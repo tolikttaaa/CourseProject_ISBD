@@ -25,8 +25,8 @@
                         <p class="subtitle"> Anatoliy A. Anischenko</p>
                         <img src="images/Anatoliy.jpg" class="picture" width="350px">
                         <p class="reg_text">
-                            1) some text<br>
-                            2)
+                            backend developer & mastermind<br> <br><br>
+                            <a href="https://github.com/tolikttaaa"><img src="images/github_PNG55.png" width="100px"></a>
                         </p>
                     </td>
                     <td>
@@ -37,8 +37,8 @@
                         <p class="subtitle"> Ekaterina A. Mashina</p>
                         <img src="images/Kate.jpg" class="picture" width="350px">
                         <p class="reg_text">
-                            1) some text <br>
-                            2)
+                            frontend developer & technical writer <br><br><br>
+                            <a href="https://github.com/mashinakatherina"> <img src="images/github_PNG55.png" width="100px"></a>
 
                         </p>
                     </td>

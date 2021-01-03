@@ -1,5 +1,6 @@
 package ifmo;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -7,27 +8,48 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 
 @WebServlet("/StartChampionship")
 public class StartChampionship extends HttpServlet {
+    private ServletConfig config;
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        this.config = config;
+    }
+
+    @Override
+    public void destroy() {
+    }
+
+    @Override
+    public ServletConfig getServletConfig() {
+        return config;
+    }
+
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response)
             throws ServletException, IOException {
         try {
+            if (config.getServletContext().getAttribute("curUserRole") == null) {
+                response.sendRedirect("index.jsp");
+            }
+            if (config.getServletContext().getAttribute("curUserRole").equals("admin")) {
 
-            Connection con = DatabaseConnection.getConnection();
 
-            PreparedStatement st = con
-                    .prepareStatement("SELECT start_championship(?);");
+                Connection con = DatabaseConnection.getConnection();
 
-            st.setInt(1, Integer.valueOf(request.getParameter("start_championship_id")));
+                PreparedStatement st = con
+                        .prepareStatement("SELECT start_championship(?);");
 
-            st.executeQuery();
+                st.setInt(1, Integer.valueOf(request.getParameter("start_championship_id")));
 
-            st.close();
-            con.close();
+                st.executeQuery();
+
+                st.close();
+                con.close();
+            }
 
             request.getRequestDispatcher("/championships.jsp").forward(request, response);
 

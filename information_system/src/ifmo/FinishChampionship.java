@@ -1,5 +1,6 @@
 package ifmo;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -11,24 +12,46 @@ import java.sql.PreparedStatement;
 
 @WebServlet("/FinishChampionship")
 public class FinishChampionship extends HttpServlet {
+    private ServletConfig config;
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        this.config = config;
+    }
+
+    @Override
+    public void destroy() {
+    }
+
+    @Override
+    public ServletConfig getServletConfig() {
+        return config;
+    }
+
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response)
             throws ServletException, IOException {
         try {
-
-            Connection con = DatabaseConnection.getConnection();
-
-            PreparedStatement st = con
-                    .prepareStatement("SELECT end_championship(?);");
-
-
-            st.setInt(1, Integer.valueOf(request.getParameter("end_championship_id")));
+            if (config.getServletContext().getAttribute("curUserRole") == null) {
+                response.sendRedirect("index.jsp");
+            }
+            if (config.getServletContext().getAttribute("curUserRole").equals("admin")) {
 
 
-            st.executeQuery();
+                Connection con = DatabaseConnection.getConnection();
 
-            st.close();
-            con.close();
+                PreparedStatement st = con
+                        .prepareStatement("SELECT end_championship(?);");
+
+
+                st.setInt(1, Integer.valueOf(request.getParameter("end_championship_id")));
+
+
+                st.executeQuery();
+
+                st.close();
+                con.close();
+            }
 
             request.getRequestDispatcher("/championships.jsp").forward(request, response);
 
