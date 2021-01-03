@@ -24,14 +24,14 @@
 <table align="right" class="block content" id = responsesTable style="margin-top: 110px; width: 700px" >
     <tr><td>Place</td><td>Team name</td><td>Score</td><td>Award</td></tr>
     <%
-        ArrayList<Championship> list = (ArrayList)config.getServletContext().getAttribute("list");
-       for(int i = 0; i < list.size(); i++) {
+        ArrayList<Championship> championships = (ArrayList)config.getServletContext().getAttribute("championships");
+       for(int i = 0; i < championships.size(); i++) {
     %>
     <tr>
-                <td><%=list.get(i).place%></td>
-                <td><%=list.get(i).team_name%></td>
-                <td><%=list.get(i).score%></td>
-                <td><%=list.get(i).award%></td>
+                <td><%=championships.get(i).place%></td>
+                <td><%=championships.get(i).team_name%></td>
+                <td><%=championships.get(i).score%></td>
+                <td><%=championships.get(i).award%></td>
 
     </tr>
 

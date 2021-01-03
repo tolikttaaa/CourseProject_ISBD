@@ -23,9 +23,10 @@
             <p class="subtitle_form"> Get results of championship</p>
 
             <p>
-                <select class="reg_text_in_form" id="result_championship_id" type="text" name="result_championship_id" style="width: 690px">  <!--Supplement an id here instead of using 'name'-->
+                <select class="reg_text_in_form" id="result_championship_id" type="text" name="result_championship_id"
+                        style="width: 690px">  <!--Supplement an id here instead of using 'name'-->
                     <option value="0" selected>Select championship id</option>
-                    <option value="1" >1</option>
+                    <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
                     <option value="4">4</option>
@@ -41,8 +42,7 @@
 
 
             <div>
-                <button class="region" type="submit" id="start-championship-submit-button">Start
-                    championship
+                <button class="region" type="submit" id="start-championship-submit-button">Get results
                 </button>
 
 

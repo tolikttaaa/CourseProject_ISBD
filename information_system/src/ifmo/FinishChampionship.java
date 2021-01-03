@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
-@WebServlet("/EndChampionship")
+@WebServlet("/FinishChampionship")
 public class FinishChampionship extends HttpServlet {
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response)
@@ -22,7 +22,7 @@ public class FinishChampionship extends HttpServlet {
                     .prepareStatement("SELECT end_championship(?);");
 
 
-            st.setString(1, request.getParameter("end_championship_id"));
+            st.setInt(1, Integer.valueOf(request.getParameter("end_championship_id")));
 
 
             st.executeQuery();

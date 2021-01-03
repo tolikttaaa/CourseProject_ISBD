@@ -47,14 +47,14 @@ public class InformationAboutPerson extends HttpServlet {
             st.setString(1, request.getParameter("search_last_name"));
             ResultSet rs = st.executeQuery();
 
-            rs.next();
-            String curUserFirstName = rs.getString("first_name");
-            String curUserLastName = rs.getString("last_name");
-            String curUserBirthDate = rs.getString("birth_date");
+            while (rs.next()) {
+                String curUserFirstName = rs.getString("first_name");
+                String curUserLastName = rs.getString("last_name");
+                String curUserBirthDate = rs.getString("birth_date");
 
-            Person p = new Person(curUserFirstName, curUserLastName, curUserBirthDate);
-            list.add(p);
-
+                Person p = new Person(curUserFirstName, curUserLastName, curUserBirthDate);
+                list.add(p);
+            }
             response.sendRedirect("info_response.jsp");
             st.close();
             con.close();

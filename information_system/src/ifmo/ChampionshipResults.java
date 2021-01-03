@@ -43,18 +43,19 @@ public class ChampionshipResults extends HttpServlet {
                     "SELECT place, final_score, name, special_award FROM score " +
                             "JOIN team ON score.team_id = team.team_id WHERE championship_id = ?");
 
-            st.setString(1, request.getParameter("result_championship_id"));
+            st.setInt(1, Integer.valueOf(request.getParameter("result_championship_id")));
 
             ResultSet rs = st.executeQuery();
 
-            rs.next();
-            String curPlace = rs.getString("place");
-            String curScore =rs.getString("final_score");
-            String curName = rs.getString("name");
-            String curAward = rs.getString("special_award");
+            while (rs.next()) {
+                String curPlace = rs.getString("place");
+                String curScore = rs.getString("final_score");
+                String curName = rs.getString("name");
+                String curAward = rs.getString("special_award");
 
-            Championship championship = new Championship(curPlace, curScore, curName, curAward);
-            championships.add(championship);
+                Championship championship = new Championship(curPlace, curScore, curName, curAward);
+                championships.add(championship);
+            }
 
             st.close();
             con.close();

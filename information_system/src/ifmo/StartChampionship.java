@@ -22,7 +22,7 @@ public class StartChampionship extends HttpServlet {
             PreparedStatement st = con
                     .prepareStatement("SELECT start_championship(?);");
 
-            st.setString(1, request.getParameter("start_championship_id"));
+            st.setInt(1, Integer.valueOf(request.getParameter("start_championship_id")));
 
             st.executeQuery();
 
