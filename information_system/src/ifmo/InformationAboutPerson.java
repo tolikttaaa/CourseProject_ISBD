@@ -43,7 +43,7 @@ public class InformationAboutPerson extends HttpServlet {
 
             PreparedStatement st = con.prepareStatement(
                     "SELECT first_name, last_name, birth_date FROM people " +
-                            "WHERE last_name = ?");
+                            "WHERE last_name = ? ORDER BY last_name");
             st.setString(1, request.getParameter("search_last_name"));
             ResultSet rs = st.executeQuery();
 
