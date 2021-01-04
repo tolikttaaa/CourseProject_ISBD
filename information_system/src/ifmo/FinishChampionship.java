@@ -57,6 +57,7 @@ public class FinishChampionship extends HttpServlet {
 
         } catch (Exception e) {
             e.printStackTrace();
+            response.sendRedirect("championships.jsp");
         }
     }
 }

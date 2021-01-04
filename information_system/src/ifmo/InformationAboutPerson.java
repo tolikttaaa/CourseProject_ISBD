@@ -68,6 +68,7 @@ public class InformationAboutPerson extends HttpServlet {
             con.close(); }
         } catch (Exception e) {
             e.printStackTrace();
+            response.sendRedirect("information_about_person.jsp");
         }
 
     }

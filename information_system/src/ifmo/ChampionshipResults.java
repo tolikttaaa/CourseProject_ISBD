@@ -63,6 +63,7 @@ public class ChampionshipResults extends HttpServlet {
             response.sendRedirect("results_response.jsp");
         } catch (Exception e) {
             e.printStackTrace();
+            response.sendRedirect("results.jsp");
         }
 
     }

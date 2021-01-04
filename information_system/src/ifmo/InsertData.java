@@ -45,6 +45,7 @@ public class InsertData extends HttpServlet {
         }
         catch (Exception e) {
             e.printStackTrace();
+            response.sendRedirect("register_person.jsp");
         }
     }
 }
