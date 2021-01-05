@@ -41,7 +41,8 @@ public class ChampionshipResults extends HttpServlet {
             Connection con = DatabaseConnection.getConnection();
             PreparedStatement st = con.prepareStatement(
                     "SELECT place, final_score, name, special_award FROM score " +
-                            "JOIN team ON score.team_id = team.team_id WHERE championship_id = ?");
+                            "JOIN team ON score.team_id = team.team_id " +
+                            "WHERE championship_id = ? ORDER BY final_score DESC");
 
             st.setInt(1, Integer.valueOf(request.getParameter("result_championship_id")));
 

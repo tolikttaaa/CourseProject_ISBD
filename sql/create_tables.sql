@@ -927,11 +927,10 @@ EXECUTE PROCEDURE check_performance();
 
 --indexes
 CREATE INDEX "performance_time_index" ON performance USING btree ("performance_time");
-CREATE INDEX "l_name_hash_index" ON people USING hash ("last_name");
-CREATE INDEX "l_name_btree_index" ON people USING btree ("last_name");
-CREATE INDEX "b_date_btree_index" ON people USING btree ("birth_date");
-CREATE INDEX "p_name_index" ON project USING hash ("name");
-CREATE INDEX "t_name_index" ON team USING hash ("name");
+CREATE INDEX "last_name_hash_index" ON people USING hash ("last_name");
+CREATE INDEX "last_name_btree_index" ON people USING btree ("last_name");
+CREATE INDEX "birth_date_btree_index" ON people USING btree ("birth_date");
+CREATE INDEX "project_name_index" ON project USING hash ("name");
+CREATE INDEX "team_name_index" ON team USING hash ("name");
 CREATE INDEX "place_index" ON score USING btree ("place");
-CREATE INDEX "f_score_btree_index" ON score USING btree ("final_score");
-CREATE INDEX "f_score_hash_index" ON score USING hash ("final_score");
+CREATE INDEX "final_score_btree_index" ON score USING btree ("final_score");

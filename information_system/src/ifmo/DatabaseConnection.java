@@ -12,11 +12,11 @@ public class DatabaseConnection {
         // Initialize all the information regarding
         // Database Connection
         String dbDriver = "org.postgresql.Driver";
-        String dbURL = "jdbc:postgresql://localhost:5432/";
+        String dbURL = "jdbc:postgresql://pg:5432/";
         // Database name to access
         String dbName = "studs";
-        String dbUsername = "admin";
-        String dbPassword = "admin";
+        String dbUsername = "s******";
+        String dbPassword = "******";
 
         Class.forName(dbDriver);
         Connection con = DriverManager.getConnection(dbURL + dbName,
