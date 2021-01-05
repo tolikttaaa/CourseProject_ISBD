@@ -194,7 +194,7 @@ CREATE OR REPLACE FUNCTION insert_person(first_name text,
                                               birth_date date,
                                               phone_number text,
                                               email_address text,
-                                              role text) RETURNS integer AS
+                                              role text DEFAULT NULL) RETURNS integer AS
 $$
 DECLARE
     person integer;

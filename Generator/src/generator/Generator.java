@@ -48,7 +48,7 @@ public class Generator {
     private static Set<Integer> used_participants_id = new HashSet<>();
 
     public static void main(String[] args) throws FileNotFoundException {
-        PrintWriter out = new PrintWriter("sql/insert_data_generated.sql");
+        PrintWriter out = new PrintWriter("../sql/insert_data_generated.sql");
 
         //generate random people
         for (int iter = 0; iter < COUNT_OF_MENTORS + COUNT_OF_JUDGES; iter++) {
