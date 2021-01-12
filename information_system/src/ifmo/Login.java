@@ -50,11 +50,20 @@ public class Login extends HttpServlet {
             if (curUserLastName.equals(request.getParameter("password"))) {
                 HttpSession session = request.getSession(true);
 
-                response.sendRedirect("index.jsp");
-                config.getServletContext().setAttribute("curUserRole", rs.getString("role"));
+                String role;
+                if (rs.getString("role") == null) {
+                    role = "user";
+                } else if (rs.getString("role").equals("admin")) {
+                    role = "admin";
+                } else {
+                    role = "user";
+                }
 
+                System.err.println(role);
+                config.getServletContext().setAttribute("curUserRole", role);
+
+                response.sendRedirect("index.jsp");
             } else {
-                request.getParameter("");
                 response.sendRedirect("login.jsp");
             }
             st.close();

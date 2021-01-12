@@ -37,35 +37,32 @@ public class InformationAboutPerson extends HttpServlet {
         list = new ArrayList<Person>();
         config.getServletContext().setAttribute("list", list);
 
-
-
         try {
-            //if (request.getSession(true).getAttribute("currentUserRole") == null){
-            if (config.getServletContext().getAttribute("curUserRole") == null){
+            if (config.getServletContext().getAttribute("curUserRole").equals("user")) {
                 response.sendRedirect("index.jsp");
             }
-            if (config.getServletContext().getAttribute("curUserRole").equals("admin")){
+            if (config.getServletContext().getAttribute("curUserRole").equals("admin")) {
+                Connection con = DatabaseConnection.getConnection();
 
-            Connection con = DatabaseConnection.getConnection();
+                PreparedStatement st = con.prepareStatement(
+                        "SELECT first_name, last_name, birth_date FROM people " +
+                                "WHERE last_name = ? ORDER BY first_name");
+                st.setString(1, request.getParameter("search_last_name"));
+                ResultSet rs = st.executeQuery();
 
-            PreparedStatement st = con.prepareStatement(
-                    "SELECT first_name, last_name, birth_date FROM people " +
-                            "WHERE last_name = ? ORDER BY first_name");
-            st.setString(1, request.getParameter("search_last_name"));
-            ResultSet rs = st.executeQuery();
+                while (rs.next()) {
+                    String curUserFirstName = rs.getString("first_name");
+                    String curUserLastName = rs.getString("last_name");
+                    String curUserBirthDate = rs.getString("birth_date");
 
-            while (rs.next()) {
-                String curUserFirstName = rs.getString("first_name");
-                String curUserLastName = rs.getString("last_name");
-                String curUserBirthDate = rs.getString("birth_date");
+                    Person p = new Person(curUserFirstName, curUserLastName, curUserBirthDate);
+                    list.add(p);
+                }
+                response.sendRedirect("info_response.jsp");
 
-                Person p = new Person(curUserFirstName, curUserLastName, curUserBirthDate);
-                list.add(p);
+                st.close();
+                con.close();
             }
-            response.sendRedirect("info_response.jsp");
-
-            st.close();
-            con.close(); }
         } catch (Exception e) {
             e.printStackTrace();
             response.sendRedirect("information_about_person.jsp");

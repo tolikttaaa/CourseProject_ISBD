@@ -32,7 +32,7 @@ public class StartChampionship extends HttpServlet {
                           HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            if (config.getServletContext().getAttribute("curUserRole") == null) {
+            if (config.getServletContext().getAttribute("curUserRole").equals("user")) {
                 response.sendRedirect("index.jsp");
             }
             if (config.getServletContext().getAttribute("curUserRole").equals("admin")) {
@@ -43,7 +43,7 @@ public class StartChampionship extends HttpServlet {
                 PreparedStatement st = con
                         .prepareStatement("SELECT start_championship(?);");
 
-                st.setInt(1, Integer.valueOf(request.getParameter("start_championship_id")));
+                st.setInt(1, Integer.parseInt(request.getParameter("start_championship_id")));
 
                 st.executeQuery();
 

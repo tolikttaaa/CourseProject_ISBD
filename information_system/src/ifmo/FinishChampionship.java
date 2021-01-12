@@ -32,7 +32,7 @@ public class FinishChampionship extends HttpServlet {
                           HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            if (config.getServletContext().getAttribute("curUserRole") == null) {
+            if (config.getServletContext().getAttribute("curUserRole").equals("user")) {
                 response.sendRedirect("index.jsp");
             }
             if (config.getServletContext().getAttribute("curUserRole").equals("admin")) {
